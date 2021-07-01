@@ -2,17 +2,16 @@
   <v-app>
     <v-container>
       <template>
-        <v-data-table class="mx-auto mt-5 elevation-15" max-width="900" :headers="columnas" :objetos="categorias" :items="articulos" :search="search">
+        <v-data-table class="elevation-15 " :headers="columnas" :objetos="categorias" :items="articulos" :search="search">
           <template v-slot:top>
             <v-toolbar  flat >
-              <v-toolbar-title>mmmm</v-toolbar-title>
+              <v-toolbar-title>Articulos</v-toolbar-title>
 
               <v-spacer></v-spacer>
               <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Search" single-line  hide-details ></v-text-field>
               <v-divider  class="mx-4"  inset  vertical ></v-divider>
 
               <v-spacer></v-spacer>
-              
               <v-dialog  v-model="dialog" width="700px" >
               
                 <template v-slot:activator="{ on, attrs }">            
@@ -29,7 +28,7 @@
                   <v-card-text>
                     <v-form  ref="form" lazy-validation >
                       <v-row >
-                        <v-col cols="12">
+                        <v-col>
                           <v-select  v-model="editedItem.categoria"  :items="categorias" label="Categoria" ></v-select>
                         </v-col>
                       </v-row>
@@ -42,11 +41,10 @@
                         </v-col>
                       </v-row>  
                       <v-row>
-                        <v-col cols="12">
+                        <v-col >
                           <v-text-field  v-model="editedItem.descripcion"  :counter="255" label="Descripción" :rules="rulesDescripcion"></v-text-field>
                         </v-col>
                       </v-row>
-
                       <v-row>
                         <v-col >
                           <v-text-field  type="number" min="0" v-model="editedItem.costo"  label="Costo"  required ></v-text-field>
@@ -72,8 +70,9 @@
             </v-toolbar>
           </template>
 
-          <template v-slot:[`item.actions`]="{ item }">
+          
 
+          <template v-slot:[`item.actions`]="{ item }">
             <v-icon small  class="mr-2"  @click="editar(item)"  > mdi-{{icons[0]}} </v-icon>
             <template v-if="item.estado">
               <v-icon small  class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-{{icons[1]}} </v-icon>
@@ -98,7 +97,6 @@ import 'jspdf-autotable'
   export default {
     data: () => ({     
       icons: ['pencil','check','block-helper','download'],
-      drawer:false,
       search: '',
       rulesCodigo: [
         value => !!value || 'Required.',
@@ -116,49 +114,23 @@ import 'jspdf-autotable'
       dialog: false,
       dialogDelete: false,
       columnas: [
-        { text: 'Categoria', value: 'categoria.nombre'},
-        { text: 'Codigo', value: 'codigo' },
-        { text: 'Nombre', value: 'nombre' },
-        { text: 'Descripcion', value: 'descripcion' },
-        { text: 'Precio', value: 'precio' },
-        { text: 'Costo', value: 'costo' },
-        { text: 'stock', value: 'stock' },
-        { text: 'Actions', value: 'actions', sortable: false }
+        { text: 'Categoria', value: 'categoria.nombre', width:'10%'},
+        { text: 'Codigo', value: 'codigo' , width:'10%'},
+        { text: 'Nombre', value: 'nombre' , width:'10%'},
+        { text: 'Descripcion', value: 'descripcion', width:'10%' },
+        { text: 'Precio', value: 'precio', width:'10%' },
+        { text: 'Costo', value: 'costo' , width:'10%'},
+        { text: 'stock', value: 'stock', width:'10%' },
+        { text: 'Actions', value: 'actions', width:'40%', sortable: false }
       ],
       categorias: [ ],
-      articulos: [
-        {
-        // nombreCategoria:'',
-        codigo:'',
-        precio:'',
-        costo:'',
-        stock:'',
-        nombre:'',
-        estado:'',
-        descripcion:''},  
-      ],
+
+      articulos: [ {  codigo:'',  precio:'', costo:'', stock:'',  nombre:'',  estado:'',  descripcion:''},   ],
+     
       editedIndex: -1,
 
-      editedItem: {
-        categoria:'',
-        estado:'',
-        precio:'',
-        costo:'',
-        codigo:'',
-        stock:'',
-        nombre:'',
-        descripcion:'',
-      },
-      defaultItem: {
-        categoria:'',
-        estado:'',
-        precio:'',
-        costo:'',
-        codigo:'',
-        stock:'',
-        nombre:'',
-        descripcion:''
-      },
+      editedItem: {  categoria:'', estado:'', precio:'',  costo:'',  codigo:'',  stock:'', nombre:'',   descripcion:'',},
+      defaultItem: { categoria:'',  estado:'',   precio:'',   costo:'', codigo:'', stock:'',  nombre:'', descripcion:'' },
     }),
     created(){
       this.obtenerArticulos();
@@ -377,7 +349,16 @@ import 'jspdf-autotable'
           didDrawPage:function(){
             doc.text("Lista de Articulos",10,10);
           },
-          rowPageBreak:'avoid',
+          columnStyles: {
+            0: {cellWidth: 26},
+            1: {cellWidth: 26},
+            2: {cellWidth: 25},
+            3: {cellWidth: 54},
+            4: {cellWidth: 17},
+            5: {cellWidth: 17},
+            6: {cellWidth: 'auto'},
+            // etc
+          },
           headStyles: { fillColor: '#23323a', textColor: '#B9F6CA',  halign: 'left'  },
           body: rows,
           columns :[
