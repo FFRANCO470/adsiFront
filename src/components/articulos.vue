@@ -5,7 +5,7 @@
         <v-data-table class="mx-auto mt-5 elevation-15" max-width="900" :headers="columnas" :objetos="categorias" :items="articulos" :search="search">
           <template v-slot:top>
             <v-toolbar  flat >
-              <v-toolbar-title>kk</v-toolbar-title>
+              <v-toolbar-title>mmmm</v-toolbar-title>
 
               <v-spacer></v-spacer>
               <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Search" single-line  hide-details ></v-text-field>
@@ -359,15 +359,6 @@ import 'jspdf-autotable'
         this.editedItem.descripcion=''
       },
       crearPDF(){
-        var columns =[
-          {title:"Categoria",dataKey:"categoria"},
-          {title:"Codigo",dataKey:"codigo"},
-          {title:"Nombre",dataKey:"nombre"},
-          {title:"Descripcion",dataKey:"descripcion"},
-          {title:"Precio",dataKey:"precio"},
-          {title:"stock",dataKey:"stock"},
-          {title:"Estado",dataKey:"estado"},
-        ];
         var rows=[];
         this.articulos.map(function(x){
           rows.push({
@@ -381,18 +372,24 @@ import 'jspdf-autotable'
             estado: x.estado
           });
         });
-        var doc = new jsPDF("p","pt");
-        doc.autoTable(
-          columns, 
-          rows,{
-            styles: { overflow: "linebreak" , columnWidth: 'auto'},
-            headerStyles: { fillColor: '#23323a', textColor: '#B9F6CA',  halign: 'left'  },
-            columnStyles: {0: {columnWidth: '15%'}},
-            margin:{top:60},
-            addPageContent:function(){
-              doc.text("Lista de Articulos",40,30);
-            },
-        });
+        var doc = new jsPDF();
+        doc.autoTable({
+          didDrawPage:function(){
+            doc.text("Lista de Articulos",10,10);
+          },
+          rowPageBreak:'avoid',
+          headStyles: { fillColor: '#23323a', textColor: '#B9F6CA',  halign: 'left'  },
+          body: rows,
+          columns :[
+          {header:"Categoria",dataKey:"categoria"},
+          {header:"Codigo",dataKey:"codigo"},
+          {header:"Nombre",dataKey:"nombre"},
+          {header:"Descripcion",dataKey:"descripcion"},
+          {header:"Precio",dataKey:"precio"},
+          {header:"stock",dataKey:"stock"},
+          {header:"Estado",dataKey:"estado"},
+          ],
+        })
         doc.save("Articulos.pdf");
       }
     },
