@@ -1,7 +1,11 @@
 <template>
   <v-app>
-    <v-container>
+    <v-container fluid>
       <template>
+
+
+
+
         <v-data-table class="elevation-15 " :headers="columnas" :objetos="categorias" :items="articulos" :search="search">
           <template v-slot:top>
             <v-toolbar  flat >
@@ -83,6 +87,10 @@
           </template>
 
         </v-data-table>
+
+
+
+
       </template>
     </v-container>
   </v-app>
