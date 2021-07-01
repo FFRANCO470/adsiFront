@@ -2,71 +2,39 @@
   <v-app>
     <v-container fluid>
       <template>
-
-
-
-
-        <v-data-table class="elevation-15 " :headers="columnas" :objetos="categorias" :items="articulos" :search="search">
+        <v-data-table class="ancho-tabla elevation-15 "  :headers="columnas" :objetos="categorias"   :items="articulos" :search="search">
           <template v-slot:top>
             <v-toolbar  flat >
               <v-toolbar-title>Articulos</v-toolbar-title>
-
               <v-spacer></v-spacer>
               <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Search" single-line  hide-details ></v-text-field>
               <v-divider  class="mx-4"  inset  vertical ></v-divider>
-
               <v-spacer></v-spacer>
               <v-dialog  v-model="dialog" width="700px" >
-              
                 <template v-slot:activator="{ on, attrs }">            
                   <v-btn  color="primary"  dark class="mb-2"  v-bind="attrs" v-on="on" > Añadir </v-btn>
                   <v-icon  medium class="mr-4" @click="crearPDF()">  mdi-{{icons[3]}}  </v-icon>
                 </template>
-                
-
                 <v-card>
-                  <v-card-title>
-                    <span class="text-h5">Articulos</span>
-                  </v-card-title>
-
+                  <v-card-title><span class="text-h5">Articulos</span></v-card-title>
                   <v-card-text>
                     <v-form  ref="form" lazy-validation >
-                      <v-row >
-                        <v-col>
-                          <v-select  v-model="editedItem.categoria"  :items="categorias" label="Categoria" ></v-select>
-                        </v-col>
-                      </v-row>
+                      <v-row > <v-col>  <v-select  v-model="editedItem.categoria"  :items="categorias" label="Categoria" ></v-select>  </v-col> </v-row>
                       <v-row>
-                        <v-col >
-                          <v-text-field  v-model="editedItem.codigo" :counter="64" label="Codigo" :rules="rulesCodigo" required  ></v-text-field>
-                        </v-col>
-                        <v-col >
-                          <v-text-field  v-model="editedItem.nombre"   :counter="50"  label="Nombre" :rules="rulesNombre" required ></v-text-field>
-                        </v-col>
+                        <v-col > <v-text-field  v-model="editedItem.codigo" :counter="64" label="Codigo" :rules="rulesCodigo" required  ></v-text-field>  </v-col>
+                        <v-col > <v-text-field  v-model="editedItem.nombre"   :counter="50"  label="Nombre" :rules="rulesNombre" required ></v-text-field> </v-col>
                       </v-row>  
+                      <v-row>  <v-col >   <v-text-field  v-model="editedItem.descripcion"  :counter="255" label="Descripción" :rules="rulesDescripcion"></v-text-field> </v-col>  </v-row>
                       <v-row>
-                        <v-col >
-                          <v-text-field  v-model="editedItem.descripcion"  :counter="255" label="Descripción" :rules="rulesDescripcion"></v-text-field>
-                        </v-col>
+                        <v-col > <v-text-field  type="number" min="0" v-model="editedItem.costo"  label="Costo"  required ></v-text-field> </v-col>
+                        <v-col >  <v-text-field type="number"  min="0" v-model="editedItem.precio"  label="Precio"  required ></v-text-field> </v-col>
+                        <v-col > <v-text-field type="number"  min="0" v-model="editedItem.stock"  label="stock"  required  ></v-text-field>  </v-col>
                       </v-row>
-                      <v-row>
-                        <v-col >
-                          <v-text-field  type="number" min="0" v-model="editedItem.costo"  label="Costo"  required ></v-text-field>
-                        </v-col>
-                        <v-col >
-                          <v-text-field type="number"  min="0" v-model="editedItem.precio"  label="Precio"  required ></v-text-field>
-                        </v-col>
-                        <v-col >
-                          <v-text-field type="number"  min="0" v-model="editedItem.stock"  label="stock"  required  ></v-text-field>
-                        </v-col>
-                      </v-row>
-
                       <v-card-actions>
                         <v-col ><v-btn color="blue darken-1" text class="mr-4" @click="guardar()" >Guardar</v-btn> </v-col >
                         <v-col > <v-btn color="blue darken-1" text @click="reset"> Limpiar</v-btn></v-col >
                         <v-col ><v-btn color="red darken-1" text @click="dialog=false"> Cancelar</v-btn> </v-col >
                       </v-card-actions>
-                      
                     </v-form>
                   </v-card-text>
                 </v-card>
@@ -122,14 +90,14 @@ import 'jspdf-autotable'
       dialog: false,
       dialogDelete: false,
       columnas: [
-        { text: 'Categoria', value: 'categoria.nombre', width:'10%'},
-        { text: 'Codigo', value: 'codigo' , width:'10%'},
-        { text: 'Nombre', value: 'nombre' , width:'10%'},
-        { text: 'Descripcion', value: 'descripcion', width:'10%' },
-        { text: 'Precio', value: 'precio', width:'10%' },
-        { text: 'Costo', value: 'costo' , width:'10%'},
-        { text: 'stock', value: 'stock', width:'10%' },
-        { text: 'Actions', value: 'actions', width:'40%', sortable: false }
+        { text: 'Categoria', value: 'categoria.nombre', class:'ancho-tabla ancho-tabla   teal accent-4 white--text',sortable: true },
+        { text: 'Codigo', value: 'codigo' , class:'ancho-tabla   teal accent-4 white--text'},
+        { text: 'Nombre', value: 'nombre', class:'ancho-tabla   teal accent-4 white--text' },
+        { text: 'Descripcion', value: 'descripcion', class:'ancho-tabla   teal accent-4 white--text',width:'100px'  },
+        { text: 'Precio', value: 'precio',  class:'ancho-tabla   teal accent-4 white--text'},
+        { text: 'Costo', value: 'costo' , class:'ancho-tabla   teal accent-4 white--text'},
+        { text: 'stock', value: 'stock', class:'ancho-tabla   teal accent-4 white--text' },
+        { text: 'Actions', value: 'actions', class:'ancho-tabla   teal accent-4 white--text' }
       ],
       categorias: [ ],
 
@@ -145,19 +113,13 @@ import 'jspdf-autotable'
       this.selectCategoria();
     },
     methods: {
-      msjcompra:function(tata){
-        Swal.fire({
-          position: 'top',
-          icon: 'error',
-          title: tata,
-          showConfirmButton: false,
-          timer: 2000})
-      },
+      msjcompra:function(tata){ Swal.fire({ position: 'top', icon: 'error', title: tata, showConfirmButton: false, timer: 2000})  },
+
       obtenerArticulos(){
         let header = {headers:{"token" : this.$store.state.token}};
         axios.get("articulo",header)
-        .then(response =>{
-          console.log(response);
+        .then(response =>{   
+          console.log(response);  
           this.articulos = response.data.articulos
         })
         .catch((error) =>{
@@ -384,3 +346,8 @@ import 'jspdf-autotable'
     },
   }
 </script>
+<style>
+  .ancho-tabla table{
+    table-layout: fixed;
+  }
+</style>
