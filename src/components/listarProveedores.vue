@@ -2,33 +2,38 @@
   <v-app>
     <v-container fluid>
       <template>
-        <v-data-table :headers="columnas" :items="personas" :search="search" sort-by="calories" >
+        <v-data-table  class="ancho-tabla elevation-15 " :headers="columnas" :items="personas" :search="search">
           <template v-slot:top>
             <v-toolbar flat  >
+
               <v-toolbar-title>Proveedores</v-toolbar-title>
+              
               <v-spacer></v-spacer>
               <v-text-field   v-model="search"  append-icon="mdi-magnify"  label="Search"  single-line hide-details></v-text-field>
               <v-divider  class="mx-4" inset  vertical ></v-divider>
+              
               <v-spacer></v-spacer>
               <v-dialog v-model="dialog" max-width="500px"  >
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn  color="primary"  dark  class="mb-2"  v-bind="attrs"  v-on="on"  >  Añadir </v-btn>
                   <v-icon  medium  class="mr-4"  @click="crearPDF()" >  mdi-{{icons[3]}} </v-icon>
                 </template>
-                <v-card width="500" class="mx-auto mt-9">
+
+                <v-card >
+                <v-card-title><span class="text-h5">Proveedores</span></v-card-title>
                   <v-card-text>
-                    <v-autocomplete   v-model="editedItem.tipoPersona"  :items="items"  dense filled label="Seleccione Tipo" ></v-autocomplete>
                     <v-text-field  v-model="editedItem.nombre" :counter="20"  label="Nombre"  required ></v-text-field>
                     <v-text-field  v-model="editedItem.tipoDocumento" label="Tipo de Documento" required  ></v-text-field>
                     <v-text-field  v-model="editedItem.numDocumento" label="Número de Documento"  required ></v-text-field>
                     <v-text-field  v-model="editedItem.direccion" label="Dirección" required ></v-text-field>
                     <v-text-field  v-model="editedItem.telefono"  label="Telefono" required  ></v-text-field>
                     <v-text-field  v-model="editedItem.email" label="Email"  required  ></v-text-field>
-                    <v-btn color="success" class="mr-4"  @click="guardar"  > Guardar </v-btn>
-                    <v-btn color="info" class="mr-4"  @click="reset">  Limpiar </v-btn>
-                    <v-btn color="error" class="mr-4" @click="dialog=false"> Cancelar </v-btn>
+                    <v-btn color="blue darken-1" text class="mr-4"  @click="guardar"  > Guardar </v-btn>
+                    <v-btn color="blue darken-1" text class="mr-4"  @click="reset">  Limpiar </v-btn>
+                    <v-btn color="red darken-1" text class="mr-4" @click="dialog=false"> Cancelar </v-btn>
                   </v-card-text>    
                 </v-card>
+                
               </v-dialog>
             </v-toolbar>
           </template>
@@ -36,10 +41,10 @@
           <template v-slot:[`item.actions`]="{ item }">
             <v-icon  small  class="mr-2"  @click="editar(item)" >  mdi-{{icons[0]}} </v-icon>
             <template v-if="item.estado">
-              <v-icon  small class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-{{icons[2]}} </v-icon>
+              <v-icon  small class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-{{icons[1]}} </v-icon>
             </template>
             <template v-else>
-              <v-icon  small  @click="activarDesactivarItem(1,item)" >  mdi-{{icons[1]}} </v-icon>
+              <v-icon  small  @click="activarDesactivarItem(1,item)" >  mdi-{{icons[2]}} </v-icon>
             </template>
           </template>
         </v-data-table>
@@ -53,9 +58,9 @@
 import axios from 'axios'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
+import Swal from 'sweetalert2'
   export default {
     data: () => ({      
-      items: ['Proveedor', 'Cliente'],
       icons: ['pencil','check','block-helper','download'],
       drawer:false,
       search: '',
@@ -63,31 +68,23 @@ import 'jspdf-autotable'
       dialog: false,
       dialogDelete: false,
       columnas: [
-        { text: 'Tipo', value: 'tipoPersona'},
         { text: 'Nombre', value: 'nombre' },
         { text: 'Tipo Documento', value: 'tipoDocumento' },
         { text: 'Número Documento', value: 'numDocumento' },
         { text: 'Dirección', value: 'direccion' },
         { text: 'Telefono', value: 'telefono' },
         { text: 'Email', value: 'email' },
-        { text: 'Estado', value: 'estadoP' },
         { text: 'Actions', value: 'actions', sortable: false }
       ],
       personas: [
         {
-        tipoPersona:'',
-        nombre:'',
-        tipoDocumento:'',
-        numDocumento:'',
-        direccion:'',
-        telefono:'',
-        estadoP:'',
-        email:''},  
+        tipoPersona:'',  nombre:'',  tipoDocumento:'', numDocumento:'',
+        direccion:'',  telefono:'', estado:'',  email:''},  
       ],
       editedIndex: -1,
       editedItem: {
         tipoPersona:'', nombre:'', tipoDocumento:'', numDocumento:'',
-        direccion:'', estadoP:'', telefono:'',  email:''
+        direccion:'', estado:'', telefono:'',  email:''
       },
       defaultItem: {
         tipoPersona:'', nombre:'', tipoDocumento:'', numDocumento:'',
@@ -96,15 +93,16 @@ import 'jspdf-autotable'
     }),
     created(){
       this.obtenerPersonas();
-    //   this.cambioEstado();
     },
     methods: {
-      cambioEstado(){
-        if (this.estado == 1){
-          this.personas.estadoP="Activo"
-        }else{
-          this.personas.estadoP="Inactivo"
-        }
+      msjcompra:function(tata){
+        Swal.fire({
+          position: 'top',
+          icon: 'error',
+          title: tata,
+          showConfirmButton: false,
+          //5000 son 5 seg
+          timer: 2000})
       },
       obtenerPersonas(){
         let header = {headers:{"token" : this.$store.state.token}};
@@ -115,6 +113,16 @@ import 'jspdf-autotable'
         })
         .catch((error) =>{
           console.log(error.response);
+          if(!error.response.data.msg){
+            console.log(error.response);
+            this.msgError = error.response.data.errors[0].msg;
+            this.msjcompra(this.msgError);
+          }else{
+            this.msgError = error.response.data.msg;
+            console.log(error.response.data.msg);
+            this.msgError =error.response.data.msg;
+            this.msjcompra(this.msgError);
+          }
         })
       },
        activarDesactivarItem (accion , item) {
@@ -124,40 +132,56 @@ import 'jspdf-autotable'
           console.log(id);
           let me = this
           let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`persona/desactivar/${id}`,
-          {estado:0},
-          header)
+          axios.put(`persona/desactivar/${id}`,{}, header)
           .then(function(){
             me.obtenerPersonas();
           })
           .catch(function(error){
             console.log(error);
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
           });
         }else if (accion==1){
           console.log(id);
           let me = this
           let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`persona/activar/${id}`,
-          {estado:1},
-          header)
+          axios.put(`persona/activar/${id}`,  {},header)
           .then(function(){
             me.obtenerPersonas();
           })
           .catch(function(error){
             console.log(error);
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
           });
         }
       },
       guardar(){
         if (this.bd == 0 ){
-          console.log('estoy guardando'+this.bd);
+          console.log('estoy guardando'+this.bd+'ALMACENAR');
           let header = {headers:{"token" : this.$store.state.token}};
           const me = this;
           axios.post('persona',{
             nombre:this.editedItem.nombre,
-            tipoPersona:this.editedItem.tipoPersona,
+            tipoPersona:'proveedor',
             tipoDocumento:this.editedItem.tipoDocumento,
-            numDocumento:this.editedItem.nombre,
+            numDocumento:this.editedItem.numDocumento,
             direccion:this.editedItem.direccion,
             telefono:this.editedItem.telefono,
             email:this.editedItem.email,
@@ -167,20 +191,30 @@ import 'jspdf-autotable'
             .then((response)=>{
               console.log(response);
               me.obtenerPersonas(),
-              this.limpiar
+              this.dialog=false
             })
             .catch((error)=>{
               console.log(error.response);
+              if(!error.response.data.msg){
+                console.log(error.response);
+                this.msgError = error.response.data.errors[0].msg;
+                this.msjcompra(this.msgError);
+              }else{
+                this.msgError = error.response.data.msg;
+                console.log(error.response.data.msg);
+                this.msgError =error.response.data.msg;
+                this.msjcompra(this.msgError);
+              }
             })
         }else{
-          console.log('estoy enviando'+this.bd);
+          console.log('estoy enviando'+this.bd+'EDITAR');
           let header = {headers:{"token" : this.$store.state.token}};
           const me = this;
           axios.put(`persona/${this.id}`,{
             nombre:this.editedItem.nombre,
-            tipoPersona:this.editedItem.tipoPersona,
+            tipoPersona:'proveedor',
             tipoDocumento:this.editedItem.tipoDocumento,
-            numDocumento:this.editedItem.nombre,
+            numDocumento:this.editedItem.numDocumento,
             direccion:this.editedItem.direccion,
             telefono:this.editedItem.telefono,
             email:this.editedItem.email,
@@ -190,10 +224,20 @@ import 'jspdf-autotable'
             .then((response)=>{
               console.log(response);
               me.obtenerPersonas(),
-              this.limpiar
+              this.dialog=false
             })
             .catch((error)=>{
               console.log(error.response);
+              if(!error.response.data.msg){
+                console.log(error.response);
+                this.msgError = error.response.data.errors[0].msg;
+                this.msjcompra(this.msgError);
+              }else{
+                this.msgError = error.response.data.msg;
+                console.log(error.response.data.msg);
+                this.msgError =error.response.data.msg;
+                this.msjcompra(this.msgError);
+              }
             })
         }
       },
@@ -202,7 +246,7 @@ import 'jspdf-autotable'
         this.bd = 1;
         this.id= item._id;
         this.editedItem.nombre=item.nombre;
-        this.editedItem.tipoPersona=item.tipoPersona
+        this.editedItem.tipoPersona='proveedor'
         this.editedItem.tipoDocumento=item.tipoDocumento
         this.editedItem.numDocumento=item.numDocumento
         this.editedItem.direccion=item.direccion

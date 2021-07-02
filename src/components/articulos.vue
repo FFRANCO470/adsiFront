@@ -5,20 +5,25 @@
         <v-data-table class="ancho-tabla elevation-15 "  :headers="columnas" :objetos="categorias"   :items="articulos" :search="search">
           <template v-slot:top>
             <v-toolbar  flat >
+
               <v-toolbar-title>Articulos</v-toolbar-title>
+
               <v-spacer></v-spacer>
               <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Search" single-line  hide-details ></v-text-field>
               <v-divider  class="mx-4"  inset  vertical ></v-divider>
+              
               <v-spacer></v-spacer>
               <v-dialog  v-model="dialog" width="700px" >
                 <template v-slot:activator="{ on, attrs }">            
                   <v-btn  color="primary"  dark class="mb-2"  v-bind="attrs" v-on="on" > Añadir </v-btn>
                   <v-icon  medium class="mr-4" @click="crearPDF()">  mdi-{{icons[3]}}  </v-icon>
                 </template>
+                
                 <v-card>
                   <v-card-title><span class="text-h5">Articulos</span></v-card-title>
                   <v-card-text>
                     <v-form  ref="form" lazy-validation >
+
                       <v-row > <v-col>  <v-select  v-model="editedItem.categoria"  :items="categorias" label="Categoria" ></v-select>  </v-col> </v-row>
                       <v-row>
                         <v-col > <v-text-field  v-model="editedItem.codigo" :counter="64" label="Codigo" :rules="rulesCodigo" required  ></v-text-field>  </v-col>
@@ -30,17 +35,21 @@
                         <v-col >  <v-text-field type="number"  min="0" v-model="editedItem.precio"  label="Precio"  required ></v-text-field> </v-col>
                         <v-col > <v-text-field type="number"  min="0" v-model="editedItem.stock"  label="stock"  required  ></v-text-field>  </v-col>
                       </v-row>
+
                       <v-card-actions>
                         <v-col ><v-btn color="blue darken-1" text class="mr-4" @click="guardar()" >Guardar</v-btn> </v-col >
                         <v-col > <v-btn color="blue darken-1" text @click="reset"> Limpiar</v-btn></v-col >
                         <v-col ><v-btn color="red darken-1" text @click="dialog=false"> Cancelar</v-btn> </v-col >
                       </v-card-actions>
+
                     </v-form>
                   </v-card-text>
                 </v-card>
+
               </v-dialog>
             </v-toolbar>
           </template>
+
           <template v-slot:[`item.actions`]="{ item }">
             <v-icon small  class="mr-2"  @click="editar(item)"  > mdi-{{icons[0]}} </v-icon>
             <template v-if="item.estado">
@@ -50,6 +59,7 @@
               <v-icon small  @click="activarDesactivarItem(1,item)"  > mdi-{{icons[2]}} </v-icon>
             </template>
           </template>
+
         </v-data-table>
       </template>
     </v-container>
@@ -82,14 +92,14 @@ import 'jspdf-autotable'
       dialog: false,
       dialogDelete: false,
       columnas: [
-        { text: 'Categoria', value: 'categoria.nombre', class:'teal accent-4 white--text',sortable: true },
-        { text: 'Codigo', value: 'codigo' , class:'teal accent-4 white--text' },
+        { text: 'Categoria', value: 'categoria.nombre', class:'teal accent-4 white--text',width:'13%'},
+        { text: 'Codigo', value: 'codigo' , class:'teal accent-4 white--text',width:'11%' },
         { text: 'Nombre', value: 'nombre', class:'teal accent-4 white--text' },
-        { text: 'Descripcion', value: 'descripcion', class:'teal accent-4 white--text' ,width:'600px' },
-        { text: 'Precio', value: 'precio',  class:'teal accent-4 white--text',width:'50px'},
-        { text: 'Costo', value: 'costo' , class:'teal accent-4 white--text',width:'50px'},
-        { text: 'stock', value: 'stock', class:'teal accent-4 white--text' ,width:'50px'},
-        { text: 'Actions', value: 'actions', class:'teal accent-4 white--text',width:'80px' }
+        { text: 'Descripcion', value: 'descripcion', class:'teal accent-4 white--text' ,width:'30%' },
+        { text: 'Precio', value: 'precio',  class:'teal accent-4 white--text',width:'9%'},
+        { text: 'Costo', value: 'costo' , class:'teal accent-4 white--text',width:'9%'},
+        { text: 'stock', value: 'stock', class:'teal accent-4 white--text' ,width:'9%'},
+        { text: 'Actions', value: 'actions', class:'teal accent-4 white--text',width:'10%',sortable: false   }
       ],
       categorias: [ ],
       articulos: [ {  codigo:'',  precio:'', costo:'', stock:'',  nombre:'',  estado:'',  descripcion:''},   ],
