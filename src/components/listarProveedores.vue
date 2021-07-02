@@ -1,155 +1,49 @@
 <template>
   <v-app>
-     <v-container>
+    <v-container fluid>
       <template>
-  <v-data-table class="mx-auto mt-5 elevation-15" max-width="900"
-    :headers="columnas"
-    :items="personas"
-    :search="search"
-    sort-by="calories"
-  >
-    <template v-slot:top>
-      <v-toolbar
-        flat
-      >
-        <v-toolbar-title>Proveedores</v-toolbar-title>
-        <v-spacer></v-spacer>
-      <v-text-field
-        v-model="search"
-        append-icon="mdi-magnify"
-        label="Search"
-        single-line
-        hide-details
-      ></v-text-field>
-        <v-divider
-          class="mx-4"
-          inset
-          vertical
-        ></v-divider>
-        <v-spacer></v-spacer>
-        <v-dialog
-          v-model="dialog"
-          max-width="500px"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              color="primary"
-              dark
-              class="mb-2"
-              v-bind="attrs"
-              v-on="on"
-            >
-              Añadir
-            </v-btn>
-            <v-icon
-                medium
-                class="mr-4"
-                @click="crearPDF()"
-              >
-                 mdi-{{icons[3]}}
-              </v-icon>
+        <v-data-table :headers="columnas" :items="personas" :search="search" sort-by="calories" >
+          <template v-slot:top>
+            <v-toolbar flat  >
+              <v-toolbar-title>Proveedores</v-toolbar-title>
+              <v-spacer></v-spacer>
+              <v-text-field   v-model="search"  append-icon="mdi-magnify"  label="Search"  single-line hide-details></v-text-field>
+              <v-divider  class="mx-4" inset  vertical ></v-divider>
+              <v-spacer></v-spacer>
+              <v-dialog v-model="dialog" max-width="500px"  >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn  color="primary"  dark  class="mb-2"  v-bind="attrs"  v-on="on"  >  Añadir </v-btn>
+                  <v-icon  medium  class="mr-4"  @click="crearPDF()" >  mdi-{{icons[3]}} </v-icon>
+                </template>
+                <v-card width="500" class="mx-auto mt-9">
+                  <v-card-text>
+                    <v-autocomplete   v-model="editedItem.tipoPersona"  :items="items"  dense filled label="Seleccione Tipo" ></v-autocomplete>
+                    <v-text-field  v-model="editedItem.nombre" :counter="20"  label="Nombre"  required ></v-text-field>
+                    <v-text-field  v-model="editedItem.tipoDocumento" label="Tipo de Documento" required  ></v-text-field>
+                    <v-text-field  v-model="editedItem.numDocumento" label="Número de Documento"  required ></v-text-field>
+                    <v-text-field  v-model="editedItem.direccion" label="Dirección" required ></v-text-field>
+                    <v-text-field  v-model="editedItem.telefono"  label="Telefono" required  ></v-text-field>
+                    <v-text-field  v-model="editedItem.email" label="Email"  required  ></v-text-field>
+                    <v-btn color="success" class="mr-4"  @click="guardar"  > Guardar </v-btn>
+                    <v-btn color="info" class="mr-4"  @click="reset">  Limpiar </v-btn>
+                    <v-btn color="error" class="mr-4" @click="dialog=false"> Cancelar </v-btn>
+                  </v-card-text>    
+                </v-card>
+              </v-dialog>
+            </v-toolbar>
           </template>
-         <v-card width="500" class="mx-auto mt-9">
-  <v-card-text>
-    <v-autocomplete
-      v-model="editedItem.tipoPersona"
-      :items="items"
-      dense
-      filled
-      label="Seleccione Tipo"
-    ></v-autocomplete>
-    <v-text-field
-      v-model="editedItem.nombre"
-      :counter="20"
-      label="Nombre"
-      required
-    ></v-text-field>
-    <v-text-field
-      v-model="editedItem.tipoDocumento"
-      label="Tipo de Documento"
-      required
-    ></v-text-field>
-    <v-text-field
-      v-model="editedItem.numDocumento"
-      label="Número de Documento"
-      required
-    ></v-text-field>
-    <v-text-field
-      v-model="editedItem.direccion"
-      label="Dirección"
-      required
-    ></v-text-field>
-    <v-text-field
-      v-model="editedItem.telefono"
-      label="Telefono"
-      required
-    ></v-text-field>
-    <v-text-field
-      v-model="editedItem.email"
-      label="Email"
-      required
-    ></v-text-field>
-    <v-btn
-      color="success"
-      class="mr-4"
-      @click="guardar"
-    >
-      Guardar
-    </v-btn>
-    <v-btn 
-    color="info"
-    class="mr-4"
-    @click="reset">
-      Limpiar
-    </v-btn>
-
-    <v-btn 
-    color="error"
-    class="mr-4"
-    @click="dialog=false">
-      Cancelar
-    </v-btn>
-  </v-card-text>    
-</v-card>
-        </v-dialog>
-      </v-toolbar>
-    </template>
-    <template v-slot:[`item.actions`]="{ item }">
-          <v-icon
-        small
-        class="mr-2"
-        @click="editar(item)"
-      >
-        mdi-{{icons[0]}}
-      </v-icon>
-      <template v-if="item.estado">
-      <v-icon
-        small
-        class="mr-2"
-        @click="activarDesactivarItem(2,item)"
-      >
-        mdi-{{icons[2]}}
-      </v-icon>
+          
+          <template v-slot:[`item.actions`]="{ item }">
+            <v-icon  small  class="mr-2"  @click="editar(item)" >  mdi-{{icons[0]}} </v-icon>
+            <template v-if="item.estado">
+              <v-icon  small class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-{{icons[2]}} </v-icon>
+            </template>
+            <template v-else>
+              <v-icon  small  @click="activarDesactivarItem(1,item)" >  mdi-{{icons[1]}} </v-icon>
+            </template>
+          </template>
+        </v-data-table>
       </template>
-      <template v-else>
-      <v-icon
-        small
-        @click="activarDesactivarItem(1,item)"
-      >
-        mdi-{{icons[1]}}
-      </v-icon>
-      </template>
-    </template>
-    <!-- <template v-slot:no-data>
-      <v-btn
-        color="primary"
-        @click="initialize"
-      >
-        Reset
-      </v-btn>
-    </template> -->
-  </v-data-table>
-</template>
     </v-container>
   </v-app>
 </template>
@@ -192,24 +86,12 @@ import 'jspdf-autotable'
       ],
       editedIndex: -1,
       editedItem: {
-        tipoPersona:'',
-        nombre:'',
-        tipoDocumento:'',
-        numDocumento:'',
-        direccion:'',
-        estadoP:'',
-        telefono:'',
-        email:''
+        tipoPersona:'', nombre:'', tipoDocumento:'', numDocumento:'',
+        direccion:'', estadoP:'', telefono:'',  email:''
       },
       defaultItem: {
-        tipoPersona:'',
-        nombre:'',
-        tipoDocumento:'',
-        numDocumento:'',
-        direccion:'',
-        estadoP:'',
-        telefono:'',
-        email:''
+        tipoPersona:'', nombre:'', tipoDocumento:'', numDocumento:'',
+        direccion:'',estadoP:'', telefono:'', email:''
       },
     }),
     created(){
@@ -218,12 +100,12 @@ import 'jspdf-autotable'
     },
     methods: {
       cambioEstado(){
-          if (this.estado == 1){
-              this.personas.estadoP="Activo"
-          }else{
-              this.personas.estadoP="Inactivo"
-          }
-        },
+        if (this.estado == 1){
+          this.personas.estadoP="Activo"
+        }else{
+          this.personas.estadoP="Inactivo"
+        }
+      },
       obtenerPersonas(){
         let header = {headers:{"token" : this.$store.state.token}};
         axios.get("persona/listProveedores",header)

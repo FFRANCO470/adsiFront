@@ -1,28 +1,20 @@
 <template>
   <v-app>
-  <v-snackbar  v-model="mensajeError"  :timeout="timeout" >
-  <!--  <v-alert type="error" v-if="mensajeError==true"  >{{msgError}} </v-alert>-->
-  </v-snackbar>
-    <v-container>
+    <v-container fluid>
       <template>
-        <v-data-table class="mx-auto mt-5 elevation-15" max-width="900" :headers="columnas" :items="categorias"  :search="search">
+        <v-data-table   class="ancho-tabla elevation-15 "  :headers="columnas" :items="categorias"  :search="search">
           <template v-slot:top>
             <v-toolbar  flat>
-
               <v-toolbar-title>Categorias</v-toolbar-title>
-
               <v-spacer></v-spacer>
               <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details  ></v-text-field>
               <v-divider class="mx-4"   inset vertical></v-divider>
-
               <v-spacer></v-spacer>
               <v-dialog v-model="dialog"  max-width="500px"  >
-
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn  color="primary"  dark class="mb-2" v-bind="attrs"  v-on="on" >   Añadir  </v-btn>
                   <v-icon  medium class="mr-4"   @click="crearPDF()" >  mdi-{{icons[3]}} </v-icon>
                 </template>
-
                 <v-card >
                   <v-card-text>
                     <v-text-field  v-model="editedItem.nombre" :counter="50" label="Nombre" :rules="rulesNombre" required ></v-text-field>
@@ -31,32 +23,24 @@
                     <v-btn  color="blue darken-1" text class="mr-4" @click="reset"> Limpiar </v-btn>
                     <v-btn  color="red darken-1" text class="mr-4" @click="dialog=false"> Cancelar </v-btn>
                   </v-card-text>    
-                  
                 </v-card>
-
               </v-dialog>
             </v-toolbar>
           </template>
-
           <template v-slot:[`item.actions`]="{ item }">
-
             <v-icon   small  class="mr-2" @click="editar(item)" >  mdi-{{icons[0]}} </v-icon>
-
             <template v-if="item.estado">
               <v-icon small class="mr-2"  @click="activarDesactivarItem(2,item)"  > mdi-{{icons[1]}} </v-icon>
             </template>
             <template v-else>
               <v-icon  small  @click="activarDesactivarItem(1,item)" > mdi-{{icons[2]}} </v-icon>
             </template>
-
           </template>
-
         </v-data-table>
       </template>
     </v-container>
   </v-app>
 </template>
-
 
 <script>
 import axios from 'axios'
@@ -71,11 +55,9 @@ import Swal from 'sweetalert2'
       drawer:false,
       search: '',
       timeout: 2000,
-
       bd:0,
       dialog: false,
       dialogDelete: false,
-
       rulesNombre: [
         value => !!value || 'Required.',
         value => (value && value.length <= 50) || 'Max 3 caracteres',
@@ -83,11 +65,10 @@ import Swal from 'sweetalert2'
       rulesDescripcion:[
         value => (value && value.length <= 255) || 'Max 255 caracteres'
       ],
-
       columnas: [
-        { text: 'Nombre', value: 'nombre' },
-        { text: 'Descripcion', value: 'descripcion' },
-        { text: 'Actions', value: 'actions', sortable: false }
+        { text: 'Nombre', value: 'nombre'  , class:'teal accent-4 white--text',width:'200px'},
+        { text: 'Descripcion', value: 'descripcion', class:'teal accent-4 white--text' },
+        { text: 'Actions', value: 'actions' , class:'teal accent-4 white--text',width:'80px',sortable: false }
       ],
       
       editedIndex: -1,
@@ -249,11 +230,6 @@ import Swal from 'sweetalert2'
       },
       
       crearPDF(){
-        var columns =[
-          {title:"Nombre",dataKey:"nombre"},
-          {title:"Descripcion",dataKey:"descripcion"},
-          {title:"Estado",dataKey:"estado"},
-        ];
         var rows=[];
         this.categorias.map(function(x){
           rows.push({
@@ -262,15 +238,24 @@ import Swal from 'sweetalert2'
             estado: x.estado
           });
         });
-        var doc = new jsPDF("p","pt");
-        doc.autoTable(
-          columns, 
-          rows,{
-          headerStyles: { fillColor: '#23323a', textColor: '#B9F6CA',  halign: 'left'  },
-          margin:{top:60},
-          addPageContent:function () { doc.text("Lista de Categorias",40,30); }
-          }
-        );
+        var doc = new jsPDF();
+        doc.autoTable({
+          didDrawPage:function(){
+            doc.text("Lista de Categorias",14,10);
+          },
+          columnStyles: {
+            0: {cellWidth: 50},
+            1: {cellWidth: 'auto'},
+            2: {cellWidth: 17},
+          },
+          headStyles: { fillColor: '#23323a', textColor: '#B9F6CA',  halign: 'left'  },
+          body:rows,
+          columns:[
+            {title:"Nombre",dataKey:"nombre"},
+            {title:"Descripcion",dataKey:"descripcion"},
+            {title:"Estado",dataKey:"estado"},
+          ],
+        });
         doc.save("Categorias.pdf");
       }
     },

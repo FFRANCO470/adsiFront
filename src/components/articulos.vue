@@ -41,24 +41,16 @@
               </v-dialog>
             </v-toolbar>
           </template>
-
-          
-
           <template v-slot:[`item.actions`]="{ item }">
             <v-icon small  class="mr-2"  @click="editar(item)"  > mdi-{{icons[0]}} </v-icon>
             <template v-if="item.estado">
-              <v-icon small  class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-{{icons[1]}} </v-icon>
+              <v-icon small  class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-{{icons[1]}} </v-icon> 
             </template>
             <template v-else>
               <v-icon small  @click="activarDesactivarItem(1,item)"  > mdi-{{icons[2]}} </v-icon>
             </template>
           </template>
-
         </v-data-table>
-
-
-
-
       </template>
     </v-container>
   </v-app>
@@ -90,21 +82,18 @@ import 'jspdf-autotable'
       dialog: false,
       dialogDelete: false,
       columnas: [
-        { text: 'Categoria', value: 'categoria.nombre', class:'ancho-tabla ancho-tabla   teal accent-4 white--text',sortable: true },
-        { text: 'Codigo', value: 'codigo' , class:'ancho-tabla   teal accent-4 white--text'},
-        { text: 'Nombre', value: 'nombre', class:'ancho-tabla   teal accent-4 white--text' },
-        { text: 'Descripcion', value: 'descripcion', class:'ancho-tabla   teal accent-4 white--text',width:'100px'  },
-        { text: 'Precio', value: 'precio',  class:'ancho-tabla   teal accent-4 white--text'},
-        { text: 'Costo', value: 'costo' , class:'ancho-tabla   teal accent-4 white--text'},
-        { text: 'stock', value: 'stock', class:'ancho-tabla   teal accent-4 white--text' },
-        { text: 'Actions', value: 'actions', class:'ancho-tabla   teal accent-4 white--text' }
+        { text: 'Categoria', value: 'categoria.nombre', class:'teal accent-4 white--text',sortable: true },
+        { text: 'Codigo', value: 'codigo' , class:'teal accent-4 white--text' },
+        { text: 'Nombre', value: 'nombre', class:'teal accent-4 white--text' },
+        { text: 'Descripcion', value: 'descripcion', class:'teal accent-4 white--text' ,width:'600px' },
+        { text: 'Precio', value: 'precio',  class:'teal accent-4 white--text',width:'50px'},
+        { text: 'Costo', value: 'costo' , class:'teal accent-4 white--text',width:'50px'},
+        { text: 'stock', value: 'stock', class:'teal accent-4 white--text' ,width:'50px'},
+        { text: 'Actions', value: 'actions', class:'teal accent-4 white--text',width:'80px' }
       ],
       categorias: [ ],
-
       articulos: [ {  codigo:'',  precio:'', costo:'', stock:'',  nombre:'',  estado:'',  descripcion:''},   ],
-     
       editedIndex: -1,
-
       editedItem: {  categoria:'', estado:'', precio:'',  costo:'',  codigo:'',  stock:'', nombre:'',   descripcion:'',},
       defaultItem: { categoria:'',  estado:'',   precio:'',   costo:'', codigo:'', stock:'',  nombre:'', descripcion:'' },
     }),
@@ -317,7 +306,7 @@ import 'jspdf-autotable'
         var doc = new jsPDF();
         doc.autoTable({
           didDrawPage:function(){
-            doc.text("Lista de Articulos",10,10);
+            doc.text("Lista de Articulos",14,10);
           },
           columnStyles: {
             0: {cellWidth: 26},
@@ -327,7 +316,6 @@ import 'jspdf-autotable'
             4: {cellWidth: 17},
             5: {cellWidth: 17},
             6: {cellWidth: 'auto'},
-            // etc
           },
           headStyles: { fillColor: '#23323a', textColor: '#B9F6CA',  halign: 'left'  },
           body: rows,
