@@ -22,15 +22,17 @@
                 <v-card >
                 <v-card-title><span class="text-h5">Proveedores</span></v-card-title>
                   <v-card-text>
-                    <v-text-field  v-model="editedItem.nombre" :counter="20"  label="Nombre"  required ></v-text-field>
-                    <v-text-field  v-model="editedItem.tipoDocumento" label="Tipo de Documento" required  ></v-text-field>
-                    <v-text-field  v-model="editedItem.numDocumento" label="Número de Documento"  required ></v-text-field>
-                    <v-text-field  v-model="editedItem.direccion" label="Dirección" required ></v-text-field>
-                    <v-text-field  v-model="editedItem.telefono"  label="Telefono" required  ></v-text-field>
-                    <v-text-field  v-model="editedItem.email" label="Email"  required  ></v-text-field>
-                    <v-btn color="blue darken-1" text class="mr-4"  @click="guardar"  > Guardar </v-btn>
-                    <v-btn color="blue darken-1" text class="mr-4"  @click="reset">  Limpiar </v-btn>
-                    <v-btn color="red darken-1" text class="mr-4" @click="dialog=false"> Cancelar </v-btn>
+                    <v-form  v-model="valid">
+                      <v-text-field  v-model="editedItem.nombre" :counter="50" :rules="rulesNombre" label="Nombre*"  required ></v-text-field>
+                      <v-text-field  v-model="editedItem.tipoDocumento" :counter="20" :rules="rulesTipoDocumento" label="Tipo de Documento"   ></v-text-field>
+                      <v-text-field  v-model="editedItem.numDocumento" :counter="20" :rules="rulesNumDocumento" label="Número de Documento"   ></v-text-field>
+                      <v-text-field  v-model="editedItem.direccion" :counter="70" :rules="rulesDireccion"  label="Dirección"  ></v-text-field>
+                      <v-text-field  v-model="editedItem.telefono"  :counter="15" :rules="rulesTelefono"  label="Telefono"   ></v-text-field>
+                      <v-text-field  v-model="editedItem.email" :counter="50" :rules="rulesEmail" label="Email*"  required  ></v-text-field>
+                      <v-btn color="blue darken-1" text class="mr-4"  @click="guardar"  > Guardar </v-btn>
+                      <v-btn color="blue darken-1" text class="mr-4"  @click="reset">  Limpiar </v-btn>
+                      <v-btn color="red darken-1" text class="mr-4" @click="dialog=false"> Cancelar </v-btn>
+                    </v-form >
                   </v-card-text>    
                 </v-card>
                 
@@ -64,23 +66,37 @@ import Swal from 'sweetalert2'
       icons: ['pencil','check','block-helper','download'],
       drawer:false,
       search: '',
+      valid: false,
+      rulesNombre: [
+        value => !!value || 'Required.',
+        value => (value && value.length <= 50) || 'Max 50 caracteres',
+      ],
+      rulesEmail: [
+        value => !!value || 'Required.',
+        value => (value && value.length <= 50) || 'Max 50 caracteres',
+      ],
+      rulesTipoDocumento: [value => ( value.length <= 20) || 'Max 20 caracteres' ],
+      rulesNumDocumento: [value => (value.length <= 20) || 'Max 20 caracteres' ],
+      rulesDireccion: [value => ( value.length <= 70) || 'Max 70 caracteres' ],
+      rulesTelefono: [value => (value.length <= 15) || 'Max 15 caracteres' ],
       bd:0,
       dialog: false,
       dialogDelete: false,
       columnas: [
-        { text: 'Nombre', value: 'nombre' },
-        { text: 'Tipo Documento', value: 'tipoDocumento' },
-        { text: 'Número Documento', value: 'numDocumento' },
-        { text: 'Dirección', value: 'direccion' },
-        { text: 'Telefono', value: 'telefono' },
-        { text: 'Email', value: 'email' },
-        { text: 'Actions', value: 'actions', sortable: false }
+        { text: 'Nombre', value: 'nombre', class:'teal accent-4 white--text' },
+        { text: 'Tipo Documento', value: 'tipoDocumento' , class:'teal accent-4 white--text'},
+        { text: 'Número Documento', value: 'numDocumento', class:'teal accent-4 white--text' },
+        { text: 'Dirección', value: 'direccion' , class:'teal accent-4 white--text'},
+        { text: 'Telefono', value: 'telefono', class:'teal accent-4 white--text',width:'10%' ,sortable: false },
+        { text: 'Email', value: 'email', class:'teal accent-4 white--text' },
+        { text: 'Actions', value: 'actions' , class:'teal accent-4 white--text',width:'10%',sortable: false }
       ],
       personas: [
         {
         tipoPersona:'',  nombre:'',  tipoDocumento:'', numDocumento:'',
         direccion:'',  telefono:'', estado:'',  email:''},  
       ],
+
       editedIndex: -1,
       editedItem: {
         tipoPersona:'', nombre:'', tipoDocumento:'', numDocumento:'',
@@ -264,20 +280,9 @@ import Swal from 'sweetalert2'
         this.editedItem.email=''
       },
       crearPDF(){
-        var columns =[
-          {tittle:"Tipo",dataKey:"tipo"},
-          {tittle:"Nombre",dataKey:"nombre"},
-          {tittle:"TipoDocumento",dataKey:"tipoDocumento"},
-          {tittle:"NúmeroDocumento",dataKey:"numDocumento"},
-          {tittle:"Direccion",dataKey:"direccion"},
-          {tittle:"Telefono",dataKey:"telefono"},
-          {tittle:"Estado",dataKey:"estado"},
-          {tittle:"E-mail",dataKey:"email"},
-        ];
         var rows=[];
         this.personas.map(function(x){
           rows.push({
-            tipoPersona: x.tipoPersona,
             nombre: x.nombre,
             tipoDocumento: x.tipoDocumento,
             numDocumento: x.numDocumento,
@@ -287,14 +292,34 @@ import Swal from 'sweetalert2'
             estado: x.estado
           });
         });
-        var doc = new jsPDF("p","pt");
-        doc.autoTable(columns, rows,{
-          margin:{top:60},
-          addPageContent:function(){
-            doc.text("Lista de Personas",40,30);
+        var doc = new jsPDF();
+
+        doc.autoTable({
+          didDrawPage:function(){
+            doc.text("Lista de Proveedores",14,10);
           },
+          columnStyles:{
+            0:{cellWidth:25},
+            1:{cellWidth:25},
+            2:{cellWidth:25},
+            3:{cellWidth:25},
+            4:{cellWidth:25},
+            5:{cellWidth:15},
+            6:{cellWidth:'auto'}
+          },
+          headStyles: { fillColor: '#23323a', textColor: '#B9F6CA',  halign: 'left'  },
+          body:rows,
+          columns :[
+          {title:"Nombre",dataKey:"nombre"},
+          {title:"Tipo Documento",dataKey:"tipoDocumento"},
+          {title:"Número Documento",dataKey:"numDocumento"},
+          {title:"Direccion",dataKey:"direccion"},
+          {title:"Telefono",dataKey:"telefono"},
+          {title:"Estado",dataKey:"estado"},
+          {title:"E-mail",dataKey:"email"},
+          ]
         });
-        doc.save("Personas.pdf");
+        doc.save("Proveedores.pdf");
       }
     },
   }
