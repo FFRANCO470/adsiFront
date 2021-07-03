@@ -93,8 +93,9 @@ import Swal from 'sweetalert2'
       ],
       personas: [
         {
-        tipoPersona:'',  nombre:'',  tipoDocumento:'', numDocumento:'',
-        direccion:'',  telefono:'', estado:'',  email:''},  
+          tipoPersona:'',  nombre:'',  tipoDocumento:'', numDocumento:'',
+          direccion:'',  telefono:'', estado:'',  email:''
+        },  
       ],
 
       editedIndex: -1,
@@ -123,23 +124,20 @@ import Swal from 'sweetalert2'
       obtenerPersonas(){
         let header = {headers:{"token" : this.$store.state.token}};
         axios.get("persona/listProveedores",header)
-        .then(response =>{
-          console.log(response.data);
-          this.personas = response.data.persona
-        })
-        .catch((error) =>{
-          console.log(error.response);
-          if(!error.response.data.msg){
+          .then(response =>{
+            console.log(response.data);
+            this.personas = response.data.persona
+          })
+          .catch((error) =>{
             console.log(error.response);
-            this.msgError = error.response.data.errors[0].msg;
-            this.msjcompra(this.msgError);
-          }else{
-            this.msgError = error.response.data.msg;
-            console.log(error.response.data.msg);
-            this.msgError =error.response.data.msg;
-            this.msjcompra(this.msgError);
-          }
-        })
+            if(!error.response.data.msg){
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          })
       },
        activarDesactivarItem (accion , item) {
         let id = item._id;
@@ -324,3 +322,8 @@ import Swal from 'sweetalert2'
     },
   }
 </script>
+<style>
+  .ancho-tabla table{
+    table-layout: fixed;
+  }
+</style>

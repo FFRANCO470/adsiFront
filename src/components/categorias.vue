@@ -263,3 +263,8 @@ import Swal from 'sweetalert2'
     },
   }
 </script>
+<style>
+  .ancho-tabla table{
+    table-layout: fixed;
+  }
+</style>
