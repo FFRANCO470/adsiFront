@@ -1,7 +1,7 @@
 <template>
     
     <div>
-        <v-img  src="../assets/logo.png" ></v-img>
+        <!--<v-img  src="../assets/logo.png" ></v-img>-->
     </div>
     
 </template>
