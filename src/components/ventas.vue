@@ -70,18 +70,33 @@
           </v-container>
           <template>
             <v-row>
-              <v-col ><span class="headline">Fecha : {{ventaConDetalle.createAt}}</span></v-col>
-              <v-col ><span class="headline">Estado : {{ventaConDetalle.estado}}</span></v-col>
+              <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Fecha : {{ventaConDetalleFecha}}</span></div>
+              <div style="margin: 30px 0 0 20px;"><span class="black--text">Estado : {{ventaConDetalleEstado}}</span></div>
             </v-row>
-            <v-row><v-col >{{ventaConDetalle.persona.nombre}}</v-col></v-row>
             <v-row>
-              <v-col ><span class="headline">Tipo Comprobante : {{ventaConDetalle.tipoComprobante}}</span></v-col>
-              <v-col ><span class="headline">Serie : {{ventaConDetalle.serieComprobante}}</span></v-col>
-              <v-col ><span class="headline">Numero Comprobante : {{ventaConDetalle.numComprobante}}</span></v-col>
+              <div style="margin: 30px 0 0 20px;"><span class="black--text">Cliente : {{ventaConDetalleCliente.nombre}}</span></div>
             </v-row>
-              <v-col >{{ventaConDetalle.impuesto}}</v-col>
-              <v-col >{{ventaConDetalle.total}}</v-col>
-              <v-col >{{ventaConDetalle.detalles}}</v-col>
+            <v-row>
+              <div style="margin: 30px 0 0 20px; "><span class="black--text">Tipo Comprobante : {{ventaConDetalleTipoComp}}</span></div>
+              <div style="margin: 30px 0 0 100px;"><span class="black--text">Serie : {{ventaConDetalleSerie}}</span></div>
+              <div style="margin: 30px 0 0 100px;"><span class="black--text"># Comprobante : {{ventaConDetalleNumComp}}</span></div>
+            </v-row>
+            <v-row>
+              <div style="margin: 30px 0 0 20px;"><span class="black--text">Impuesto : {{ventaConDetalleImpuesto}}</span></div>
+              <div style="margin: 30px 0 0 100px;"><span class="black--text">Total : {{ventaConDetalleTotal}}</span></div>
+            </v-row>
+            <v-row>
+              <v-col >
+                <v-data-table class="ancho-tabla elevation-15 "  :headers="articulosVendidos"   :items="artiVendidos" >
+                  <template v-slot:top>
+                    <v-toolbar  flat >
+                      <v-toolbar-title>Ventas</v-toolbar-title>
+                    </v-toolbar>
+                  </template>
+                </v-data-table>
+              </v-col >
+            </v-row>
+            <v-col >{{ventaConDetalleDetalles}}</v-col>
 
             
             
@@ -103,8 +118,23 @@ import 'jspdf-autotable'
       search: '',
       muestra :0,
       bd:0,
-      ventaConDetalle:{},
+      ventaConDetalleFecha:'',
+      ventaConDetalleEstado:'',
+      ventaConDetalleCliente:'',
+      ventaConDetalleTipoComp:'',
+      ventaConDetalleSerie:'',
+      ventaConDetalleNumComp:'',
+      ventaConDetalleImpuesto:'',
+      ventaConDetalleTotal:'',
+      ventaConDetalleDetalles:[],
       dialogDelete: false,
+      articulosVendidos:[
+        { text: 'id', value: '_id',class:'teal accent-4 white--text' },
+        { text: 'nombre', value: 'cantidad',class:'teal accent-4 white--text' },
+        { text: 'cantidad', value: 'cantidad',class:'teal accent-4 white--text' },
+        { text: 'precio', value: 'precio',class:'teal accent-4 white--text' },
+      ],
+      artiVendidos:[{_id:'',cantidad:'',precio:''}],
       columnas: [
         { text: 'Fecha', value: 'createAt',class:'teal accent-4 white--text' },
         { text: 'Usuario', value: 'usuario.nombre' ,class:'teal accent-4 white--text',width:'10%'},
@@ -141,22 +171,22 @@ import 'jspdf-autotable'
     },
     methods: {
       selectTipo() {
-      let me = this;
-      let personaArray = [];
-      let header = { headers: { "token": this.$store.state.token } };
-      axios
-        .get("persona", header)
-        .then(function (response) {
-          personaArray = response.data.persona;
-          personaArray.map(function (x) {
-            me.tipoC.push({ text: x.tipoComprobante, value: x._id });
+        let me = this;
+        let personaArray = [];
+        let header = { headers: { "token": this.$store.state.token } };
+        axios
+          .get("persona", header)
+          .then(function (response) {
+            personaArray = response.data.persona;
+            personaArray.map(function (x) {
+              me.tipoC.push({ text: x.tipoComprobante, value: x._id });
+            });
+          })
+          .catch(function (error) {
+            console.log(error);
           });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
-       obtenerPersonas(){
+      },
+      obtenerPersonas(){
         let header = {headers:{"token" : this.$store.state.token}};
         axios.get("persona",header)
         .then(response =>{
@@ -334,7 +364,8 @@ import 'jspdf-autotable'
           this.muestra=num;
         }else{
           this.muestra=num;
-          this.traerVentaDetalle(item)
+          
+        this.traerVentaDetalle(item);
         }
       },
       traerVentaDetalle(item){
@@ -343,7 +374,16 @@ import 'jspdf-autotable'
         axios.get(`venta/${id}`,header)
         .then(response =>{
           console.log(response);
-          this.ventaConDetalle = response.data.venta
+          this.ventaConDetalleFecha=response.data.venta.createAt
+          this.ventaConDetalleEstado=response.data.venta.estado
+          this.ventaConDetalleCliente=response.data.venta.persona
+          this.ventaConDetalleTipoComp=response.data.venta.tipoComprobante
+          this.ventaConDetalleSerie=response.data.venta.serieComprobante
+          this.ventaConDetalleNumComp=response.data.venta.numComprobante
+          this.ventaConDetalleImpuesto=response.data.venta.impuesto
+          this.ventaConDetalleTotal=response.data.venta.total
+          this.ventaConDetalleDetalles=response.data.venta.detalles
+          this.artiVendidos=this.ventaConDetalleDetalles
         })
         .catch((error) =>{
           console.log(error.response);
