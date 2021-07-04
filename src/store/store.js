@@ -15,6 +15,9 @@ export const store = new Vuex.Store({
         },
         setRol(state,value){
             state.rol=value
+        },
+        setIdUser(state,value){
+            state.idUser = value
         }
     },
     actions:{
@@ -23,6 +26,9 @@ export const store = new Vuex.Store({
         },
         setRol(context,value){
             context.commit("setRol",value)
+        },
+        setIdUser(context,value){
+            context.commit("setIdUser",value)
         }
     }
 })

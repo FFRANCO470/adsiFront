@@ -82,6 +82,7 @@ export default {
           .then(response =>{
             this.$store.dispatch("setToken", response.data.token);
             this.$store.dispatch("setRol", response.data.usuario.rol);
+            this.$store.dispatch("setIdUser", response.data.usuario._id);
             this.$router.push("/home");
             console.log('token' + response.data.token);
             return console.log(response);

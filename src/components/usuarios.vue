@@ -1,8 +1,8 @@
 <template>
   <v-app>
-    <v-container>
+    <v-container fluid>
       <template>
-        <v-data-table class="mx-auto mt-5 elevation-15" max-width="900"  :headers="columnas" :items="usuarios" :search="search" >
+        <v-data-table class="ancho-tabla elevation-15"  :headers="columnas" :items="usuarios" :search="search" >
           <template v-slot:top>
             <v-toolbar  flat >
               <v-toolbar-title>Usuarios</v-toolbar-title>
@@ -12,9 +12,7 @@
               <v-divider  class="mx-4"  inset  vertical  ></v-divider>
 
               <v-spacer></v-spacer>
-
               <v-dialog  v-model="dialog" max-width="700px"  >
-
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn color="primary"  dark  class="mb-2"  v-bind="attrs" v-on="on">Añadir </v-btn>
                   <v-icon medium class="mr-4"  @click="crearPDF()"> mdi-{{icons[3]}} </v-icon>
@@ -22,28 +20,15 @@
 
                 <v-card>
                   <v-card-title><span class="text-h5">Usuarios</span></v-card-title>
-        
-                  <v-form ref="form" lazy-validation >
-        
-                    <v-col>
-                      <v-autocomplete v-model="editedItem.rol"  :items="items"  dense  filled label="Seleccione Rol" ></v-autocomplete>
-                    </v-col>
-
-                    <v-col >
-                      <v-text-field  v-model="editedItem.nombre"   :counter="50" :rules="rulesName" label="Nombre" required   prepend-icon="mdi-account-circle"  ></v-text-field>
-                    </v-col>
-
-                    <v-col >
-                      <v-text-field v-model="editedItem.email" label="E-mail" :counter="50" :rules="rulesEmail" required  prepend-icon="mdi-email"  ></v-text-field>
-                    </v-col>
-
-                    <v-col>
-                      <v-text-field v-model="editedItem.password"  label="Contraseña" prepend-icon="mdi-lock" :counter="50" :rules="rulesPass"
+                  <v-form v-model="valid">
+                    <v-col><v-autocomplete v-model="editedItem.rol"  :items="items"  dense  filled label="Seleccione Rol" ></v-autocomplete></v-col>
+                    <v-col><v-text-field  v-model="editedItem.nombre"   :counter="50" :rules="rulesName" label="Nombre" required   prepend-icon="mdi-account-circle"  ></v-text-field></v-col>
+                    <v-col><v-text-field v-model="editedItem.email" label="E-mail" :counter="50" :rules="rulesEmail" required  prepend-icon="mdi-email"  ></v-text-field></v-col>
+                    <v-col><v-text-field v-model="editedItem.password"  label="Contraseña" prepend-icon="mdi-lock" :counter="50" :rules="rulesPass"
                        :type=" mostrarContraseña ? 'text' : 'password'"
                         :append-icon="mostrarContraseña ? 'mdi-eye' : 'mdi-eye-off'"
-                        @click:append="mostrarContraseña =! mostrarContraseña"/>
-                    </v-col>
-
+                        @click:append="mostrarContraseña =! mostrarContraseña"/></v-col>
+                    
                     <v-card-actions>
                       <v-col><v-btn color="blue darken-1" text @click="guardar()" >Guardar</v-btn></v-col>
                       <v-col><v-btn color="blue darken-1" text @click="reset"> Limpiar</v-btn></v-col>
@@ -83,7 +68,7 @@ import 'jspdf-autotable'
       icons: ['pencil','check','block-helper','download'],
       value: null,
       mostrarContraseña:false,
-      
+      valid: false,
       drawer:false,
       search: '',
       dialog: false,
@@ -107,11 +92,10 @@ import 'jspdf-autotable'
       id:'',
       bd: 0,
       columnas: [
-        { text: 'Nombre', value: 'nombre' },
-        { text: 'Email', value: 'email' },
-        { text: 'Rol', value: 'rol' },
-        { text: 'Estado', value: 'estado' },
-        { text: 'Actions', value: 'actions', sortable: false }
+        { text: 'Nombre', value: 'nombre' , class:'teal accent-4 white--text'},
+        { text: 'Email', value: 'email' , class:'teal accent-4 white--text'},
+        { text: 'Rol', value: 'rol', class:'teal accent-4 white--text' },
+        { text: 'Actions', value: 'actions' , class:'teal accent-4 white--text',width:'10%', sortable: false }
       ],
       usuarios: [{ nombre:'',  email:'', estado:'', password:'', rol:''}],
 
@@ -166,7 +150,7 @@ import 'jspdf-autotable'
           console.log(id);
           let me = this
           let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`usuario/desactivar/${id}`, {estado:0}, header)
+          axios.put(`usuario/desactivar/${id}`, {}, header)
           .then(function(){
             me.obtenerUsuarios();
           })
@@ -187,7 +171,7 @@ import 'jspdf-autotable'
           console.log(id);
           let me = this
           let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`usuario/activar/${id}`,  {estado:1},  header)
+          axios.put(`usuario/activar/${id}`,  {},  header)
           .then(function(){
             me.obtenerUsuarios();
           })
@@ -222,7 +206,7 @@ import 'jspdf-autotable'
             .then((response)=>{
               console.log(response);
               me.obtenerUsuarios(),
-              this.limpiar
+              this.dialog=false
             })
             .catch((error)=>{
               console.log(error.response);
@@ -252,7 +236,7 @@ import 'jspdf-autotable'
             .then((response)=>{
               console.log(response);
               me.obtenerUsuarios(),
-              this.limpiar
+              this.dialog=false
             })
             .catch((error)=>{
               console.log(error.response);
@@ -286,12 +270,6 @@ import 'jspdf-autotable'
       },
 
       crearPDF(){
-        var columns =[
-          {title:"Nombre",dataKey:"nombre"},
-          {title:"E-mail",dataKey:"email"},
-          {title:"Rol",dataKey:"rol"},
-          {title:"Estado",dataKey:"estado"},
-        ];
         var rows=[];
         this.usuarios.map(function(x){
           rows.push({
@@ -301,16 +279,35 @@ import 'jspdf-autotable'
             estado: x.estado
           });
         });
-        var doc = new jsPDF("p","pt");
-        doc.autoTable(columns, rows,{
-          headerStyles: { fillColor: '#23323a', textColor: '#B9F6CA',  halign: 'left'  },
-          margin:{top:60},
-          addPageContent:function(){
-            doc.text("Lista de Usuarios",40,30);
+        var doc = new jsPDF();
+
+        doc.autoTable({
+          didDrawPage:function(){
+            doc.text("Lista de Usuarios",14,10);
           },
+          columnStyles:{
+            0:{cellWidth:50},
+            1:{cellWidth:60},
+            2:{cellWidth:50},
+            3:{cellWidth:'auto'}
+          },
+          headStyles: { fillColor: '#23323a', textColor: '#B9F6CA',  halign: 'left'  },
+          body:rows,
+          columns :[
+          {title:"Nombre",dataKey:"nombre"},
+          {title:"E-mail",dataKey:"email"},
+          {title:"Rol",dataKey:"rol"},
+          {title:"Estado",dataKey:"estado"},
+          ]
         });
         doc.save("Usuarios.pdf");
       }
     },
   }
 </script>
+
+<style>
+  .ancho-tabla table{
+    table-layout: fixed;
+  }
+</style>

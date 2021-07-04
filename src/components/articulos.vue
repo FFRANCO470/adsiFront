@@ -145,7 +145,9 @@ import 'jspdf-autotable'
           .then(function (response) {
             categoriaArray = response.data.categoria;
             categoriaArray.map(function (x) {
-              me.categorias.push({ text: x.nombre, value: x._id });
+              if(x.estado==1){
+                me.categorias.push({ text: x.nombre, value: x._id });
+              }
             });
           })
           .catch(function (error) {
