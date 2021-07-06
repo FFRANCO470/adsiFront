@@ -6,7 +6,7 @@
         <v-data-table v-if="muestra == 0" class="ancho-tabla elevation-15" :headers="columnas" :items="ventas" :search="search" >
           <template v-slot:top>
             <v-toolbar flat >
-              <v-toolbar-title>Ventas:</v-toolbar-title>
+              <v-toolbar-title>Ventas: {{totalVentas}}</v-toolbar-title>
               <v-spacer></v-spacer>
               <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
               <v-divider  class="mx-4"   inset  vertical ></v-divider>
@@ -61,7 +61,7 @@
 
                     <template v-slot:top>
                       <v-toolbar flat >
-                        <v-toolbar-title>Total:{{totalVendido}}</v-toolbar-title>
+                        <v-toolbar-title>Total: {{totalVendido}}</v-toolbar-title>
                         <v-spacer></v-spacer>
                         <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
                         <v-divider  class="mx-4"   inset  vertical ></v-divider>
@@ -235,7 +235,7 @@ import 'jspdf-autotable'
     methods: {
       //msg de alerta
       msjcompra:function(tata){ Swal.fire({ position: 'top', icon: 'error', title: tata, showConfirmButton: false, timer: 2000})  },
-      listo:function(){ Swal.fire({ position: 'top', icon: 'success', title: 'Venta realizada', showConfirmButton: false, timer: 2000})  },
+      listo:function(){ Swal.fire({ position: 'top', icon: 'success ', title: 'Venta realizada', showConfirmButton: false, timer: 2000})  },
       //llenar tabla de ventas
       obtenerVenta(){
         let header = {headers:{"token" : this.$store.state.token}};
@@ -616,6 +616,11 @@ import 'jspdf-autotable'
       totalVendido(){
           return this.facturaArticulos.reduce((suma,articulo)=>{
             return suma + (parseInt(articulo.cantidad)*articulo.precio)
+          },0)
+      },
+      totalVentas(){
+          return this.ventas.reduce((suma,venta)=>{
+            return suma + parseFloat(venta.total)
           },0)
       }
     }
