@@ -252,7 +252,7 @@
       items4: [
         {action: 'mdi-chart-line',
           items: [{ title: 'Consultar compras',ruta:{path:'/consultarCompras'} },
-                  { title: 'Consultar ventas',ruta: {path:'/usuario'}}
+                  { title: 'Consultar ventas',ruta: {path:'/consultarVentas'}}
           ],
           title: 'Consultas',
         }

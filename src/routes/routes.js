@@ -9,6 +9,7 @@ import home from '../components/home.vue';
 import listarProveedores from '../components/listarProveedores.vue';
 import listarClientes from '../components/listarClientes.vue';
 import consultarCompras from '../components/consultarCompras.vue';
+import consultarVentas from '../components/consultarVentas.vue';
 
 export const routes = [
     {path:'/compra',component: compras},
@@ -22,4 +23,5 @@ export const routes = [
     {path:'/',component: login},
     {path:'/home',component: home},
     {path:'/consultarCompras',component: consultarCompras},
+    {path:'/consultarVentas',component: consultarVentas},
 ]

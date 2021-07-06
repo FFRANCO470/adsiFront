@@ -149,6 +149,7 @@ import 'jspdf-autotable'
                 me.categorias.push({ text: x.nombre, value: x._id });
               }
             });
+            console.log(me.categorias);
           })
           .catch(function (error) {
             console.log(error);

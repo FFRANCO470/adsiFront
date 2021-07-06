@@ -6,16 +6,17 @@
         <v-data-table v-if="muestra == 0" class="ancho-tabla elevation-15" :headers="columnas" :items="ventas" :search="search" >
           <template v-slot:top>
             <v-toolbar flat >
-              <v-toolbar-title>Ventas</v-toolbar-title>
+              <v-toolbar-title>Ventas:</v-toolbar-title>
               <v-spacer></v-spacer>
               <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
               <v-divider  class="mx-4"   inset  vertical ></v-divider>
               <v-spacer></v-spacer>
                   <v-icon  medium   class="mr-4" @click="crearPDF()"  >mdi-download</v-icon>
                   <v-btn color="primary"  dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
+                  
             </v-toolbar>
           </template>
-          <template v-slot:[`item.actions`]="{ item }">
+          <template v-slot:item.actions="{ item }">
             <v-icon  small  class="mr-2" @click="cambioPage(2,item)" >mdi-clipboard-outline </v-icon>
             <template v-if="item.estado">
               <v-icon small class="mr-2"  @click="activarDesactivarItem(2,item)" >mdi-check</v-icon>
@@ -29,31 +30,79 @@
 
       <template>
         <div v-if="muestra==1" class="container pa-4 white grid-list-sm">
-          <div class="container fill-height fluid">
-            <v-container>
-              <v-row><v-btn   @click="cambioPage(0,false)"  color="Error"   dark  class="mb-2"> Cancelar</v-btn></v-row>
+            <v-container fluid>
+              <v-row> 
+                <v-btn   @click="guardar2()"  color="blue"   dark  class="mb-2"> Generar venta</v-btn>
+                <v-spacer></v-spacer>
+                <v-btn   @click="cambioPage(0,false)"  color="Error"   dark  class="mb-2"> Cancelar</v-btn>
+              </v-row>
               <v-row>
                 <v-col cols="4">
-                  <v-autocomplete v-model="editedItem.tipoComprobante"  :items="tipoC" dense  label="Tipo Comprobante" ></v-autocomplete>
+                  <v-autocomplete v-model="editedItem.tipoComprobante"  :items="tiposComprobantaVenta"   label="Tipo Comprobante" ></v-autocomplete>
                 </v-col>
                 <v-col cols="4">
-                  <v-autocomplete v-model="editedItem.serieComprobante" :items="ventas" dense label="Serie Comprobante" ></v-autocomplete>
+                  <v-text-field  v-model="editedItem.serieComprobante"  label="Serie comprobante"></v-text-field>
                 </v-col>
                 <v-col cols="4">
-                  <v-autocomplete v-model="editedItem.numComprobante" :items="ventas" dense label="Número Comprobante"  ></v-autocomplete>
+                  <v-text-field  type="number" min="0" v-model="editedItem.numComprobante"  label="Numero comprobante"></v-text-field>
                 </v-col>
               </v-row>
               <v-row>
                 <v-col cols="8">
-                  <v-autocomplete  v-model="editedItem.persona" :items="ventas" dense label="Proveedor"  ></v-autocomplete>
+                  <v-autocomplete  v-model="editedItem.persona" :items="clientes"  label="Cliente"  ></v-autocomplete>
                 </v-col>
                 <v-col cols="4">
-                  <v-autocomplete v-model="editedItem.impuesto" :items="ventas"  dense label="Impuesto" ></v-autocomplete>
+                  <v-text-field  type="number" min="0" v-model="editedItem.impuesto"  label="Impuesto"></v-text-field>
                 </v-col>
               </v-row>
+                            <v-row>
+                <v-col>
+                  <v-data-table class="ancho-tabla elevation-15" :headers="facturaArticulosTitle" :items="facturaArticulos"   >
+
+                    <template v-slot:top>
+                      <v-toolbar flat >
+                        <v-toolbar-title>Total:{{totalVendido}}</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
+                        <v-divider  class="mx-4"   inset  vertical ></v-divider>
+                      </v-toolbar>
+                    </template>
+                    
+                    <template  v-slot:item.cantidad="props">
+                      <v-text-field  v-model="props.item.cantidad"  min=0 name="quantity"  outlined type="number"></v-text-field>
+                    </template>
+
+                    <template v-slot:[`item.subtotal`]="{ item }">
+                      {{item.precio*item.cantidad}}
+                    </template>
+
+                    <template v-slot:[`item.actions`]="{ item }">
+                      <v-icon  small  class="mr-2" @click="desfacturar(item)" >mdi-delete </v-icon>
+                    </template>
+
+                  </v-data-table> 
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col>
+                  <v-data-table class="ancho-tabla elevation-15"  :headers="mostradorArticulosTitle" :items="mostradorArticulos" :search="search" >
+                    <template v-slot:top>
+                      <v-toolbar flat >
+                        <v-spacer></v-spacer>
+                        <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
+                        <v-divider  class="mx-4"   inset  vertical ></v-divider>
+                      </v-toolbar>
+                    </template>
+
+                    <template  v-slot:item.actions="{ item }">
+                      <v-icon  small  class="mr-2" @click="facturar(item)" >mdi-cart </v-icon>
+                    </template>
+                  </v-data-table>  
+                </v-col>
+              </v-row>
+
               
             </v-container>                
-          </div>
         </div>
       </template>
       <template>
@@ -129,7 +178,7 @@ import 'jspdf-autotable'
       ventas: [
         {
         usuario:'', persona:'',  tipoComprobante:'', serieComprobante:'',
-        numComprobante:'', impuesto:'',total:'', detalles:'', createAt:'',
+        numComprobante:'', impuesto:0,total:0, detalles:'', createAt:'',
         }
       ],
       ventaConDetalleFecha:'',
@@ -150,17 +199,35 @@ import 'jspdf-autotable'
       ],
       artiVendidos:[{_id:'',nombre:'',cantidad:'',precio:''}],
       articuloIncluido:[{_id:'',nombre:'',cantidad:'',precio:'',precioTotal:''}],
-
-
-
-
-      editedIndex: -1,
       editedItem:{
-        usuario:'', persona:'',  tipoComprobante:'', serieComprobante:'',
-        numComprobante:'', impuesto:'',total:'', detalles:'', createAt:'',
+        persona:'',  tipoComprobante:'', serieComprobante:'',
+        numComprobante:'', impuesto:'',total:'', detalles:[],
       },
-      serieC:[],
-      numC:[],
+      tiposComprobantaVenta:["FACTURA","NOTA DEBITO","NOTA CREDITO"],
+      clientes:[],
+      mostradorArticulosTitle:[
+        {text:'Codigo',value:'codigo',class:'teal accent-4 white--text',sortable: false},
+        {text:'Nombre',value:'nombre',class:'teal accent-4 white--text',sortable: false},
+        {text:'Cantidad',value:'cantidad',class:'teal accent-4 white--text',sortable: false},
+        {text:'Precio',value:'precio',class:'teal accent-4 white--text',sortable: false},
+        {text:'Agregar',value:'actions',class:'teal accent-4 white--text',sortable: false}
+      ],
+      mostradorArticulosLlegar:[{_id:'',estado:'',codigo:'',nombre:'',precio:0,cantidad:0}],
+      mostradorArticulos:[{_id:'',codigo:'',nombre:'',precio:0,cantidad:0}],
+
+      facturaArticulosTitle:[
+        {text:'Nombre',value:'nombre',class:'teal accent-4 white--text',sortable: false},
+        {text:'Cantidad',value:'cantidad',class:'teal accent-4 white--text',sortable: false},
+        {text:'Precio',value:'precio',class:'teal accent-4 white--text',sortable: false},
+        {text:'Sub total',value:'subtotal',class:'teal accent-4 white--text',sortable: false},
+        {text:'Eliminar',value:'actions',class:'teal accent-4 white--text',sortable: false}
+      ],
+      facturaArticulos:[  ],
+      editedIndex: -1,
+
+
+
+
     }),
     created(){
       this.obtenerVenta();
@@ -168,6 +235,7 @@ import 'jspdf-autotable'
     methods: {
       //msg de alerta
       msjcompra:function(tata){ Swal.fire({ position: 'top', icon: 'error', title: tata, showConfirmButton: false, timer: 2000})  },
+      listo:function(){ Swal.fire({ position: 'top', icon: 'success', title: 'Venta realizada', showConfirmButton: false, timer: 2000})  },
       //llenar tabla de ventas
       obtenerVenta(){
         let header = {headers:{"token" : this.$store.state.token}};
@@ -175,6 +243,7 @@ import 'jspdf-autotable'
         .then(response =>{
           console.log(response.data);
           this.ventas = response.data.venta
+          console.log(this.ventas);
         })
         .catch((error) =>{
           console.log(error.response);
@@ -196,6 +265,8 @@ import 'jspdf-autotable'
           this.muestra=num;
         }else if(num==1){
           this.muestra=num;
+          this. obtenerPersonas();
+          this.obtenerArtirticulos();
         }else{
           this.muestra=num;
           this.traerVentaDetalle(item);
@@ -389,63 +460,164 @@ import 'jspdf-autotable'
         }),
         doc.save("Factura de venta.pdf");
       },
-
-
-
-
-
+      //traer los clientes para colocarlos en la venta
       obtenerPersonas(){
+        let me = this;
+        let clientesArray=[];
         let header = {headers:{"token" : this.$store.state.token}};
-        axios.get("persona",header)
-        .then(response =>{
-          console.log(response.data);
-          this.compras = response.data.persona
+        axios.get("persona/listClientes",header)
+          .then(response =>{
+            console.log(response.data);
+            clientesArray = response.data.persona;
+            clientesArray.map(function(x){
+              if(x.estado==1){
+                me.clientes.push({text:x.nombre,value:x._id})
+              }
+            })
+          })
+          .catch((error) =>{
+            console.log(error.response);
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          })
+      },
+      //alista los articulos para venderlos
+      meterArticulos(mostradorArticulosLlegar){
+        var pepe=[];
+        mostradorArticulosLlegar.map(function(x){
+          if(x.estado!=0 && x.stock>0){
+            pepe.push({
+              _id:x._id,
+              codigo:x.codigo,
+              nombre:x.nombre,
+              precio:x.precio,
+              cantidad:x.stock
+            })
+          }
+        })
+        console.log(pepe);
+        this.mostradorArticulos=pepe;
+      },
+      //trae los articulos para venderlos
+      obtenerArtirticulos(){
+        let header = {headers:{"token" : this.$store.state.token}};
+        axios.get("articulo",header)
+        .then(response =>{   
+          console.log(response);  
+          this.mostradorArticulosLlegar = response.data.articulos
+          this.meterArticulos(this.mostradorArticulosLlegar);
         })
         .catch((error) =>{
           console.log(error.response);
+          if(!error.response.data.msg){
+            console.log(error.response);
+            this.msgError = error.response.data.errors[0].msg;
+            this.msjcompra(this.msgError);
+          }else{
+            this.msgError = error.response.data.msg;
+            console.log(error.response.data.msg);
+            this.msgError =error.response.data.msg;
+            this.msjcompra(this.msgError);
+          }
         })
       },
-      
-      
-      guardar(){
-          console.log('estoy guardando'+this.bd);
-          let header = {headers:{"token" : this.$store.state.token}};
-          const me = this;
-          axios.post('compra',{
-            usuario:this.editedItem.usuario,
-            persona:this.editedItem.persona,
-            tipoComprobante:this.editedItem.tipoComprobante,
-            serieComprobante:this.editedItem.serieComprobante,
-            numComprobante:this.editedItem.numComprobante,
-            impuesto:this.editedItem.impuesto,
-            total:this.editedItem.total,
-            detalles:this.editedItem.detalles,
-            },
-            header
-            )
+      //agrega el articulo a la venta
+      facturar(item){
+        this.editedIndex=this.mostradorArticulos.indexOf(item);
+        this.facturaArticulos.push(item);
+        this.mostradorArticulos.splice(this.editedIndex,1);
+        console.log(this.facturaArticulos);
+        console.log(this.editedIndex);
+      },
+      //quita el articulo de la venta
+      desfacturar(item){
+        this.editedIndex=this.facturaArticulos.indexOf(item)
+        this.mostradorArticulos.push(item)
+        this.facturaArticulos.splice(this.editedIndex,1)
+        console.log(this.facturaArticulos);
+        console.log(this.editedIndex);
+      },
+      //alista las variables para mandarlas a la bd online
+      guardar2(){
+        var usuario=this.$store.state.idUser;
+        var persona=this.editedItem.persona;
+        var tipoComprobante=this.editedItem.tipoComprobante;
+        var serieComprobante=this.editedItem.serieComprobante;
+        var numComprobante=this.editedItem.numComprobante;
+        var impuesto=parseFloat(this.editedItem.impuesto)/100;
+        var total=     Math.ceil((this.totalVendido)*(1+impuesto)/1)*1;
+        var detalles=this.facturaArticulos;
+        console.log(usuario);
+        console.log(persona);
+        console.log(tipoComprobante);
+        console.log(serieComprobante);
+        console.log(numComprobante);
+        console.log(impuesto);
+        console.log(total);
+        console.log(detalles);
+        this.guardar(usuario,persona,tipoComprobante,serieComprobante,numComprobante,impuesto,total,detalles)
+      },
+      //agrega la venta a la bd online
+      guardar(user,person,tipo,serie,num,imp,total,deta){
+        console.log('estoy guardando'+this.bd);
+        let header = {headers:{"token" : this.$store.state.token}};
+        axios.post('venta',{
+          usuario:user,
+          persona:person,
+          tipoComprobante:tipo,
+          serieComprobante:serie,
+          numComprobante:num,
+          impuesto:imp,
+          total:total,
+          detalles:deta
+          },header)
             .then((response)=>{
               console.log(response);
-              me.obtenerVenta(),
-              this.limpiar
+              this.obtenerVenta();
+              this. obtenerPersonas();
+              this.obtenerArtirticulos();
+              this.reset();
+              this.listo();
             })
             .catch((error)=>{
-              console.log(error.response);
+                console.log(error.response);
+                if(!error.response.data.msg){
+                console.log(error.response);
+                this.msgError = error.response.data.errors[0].msg;
+                this.msjcompra(this.msgError);
+              }else{
+                this.msgError = error.response.data.msg;
+                console.log(error.response.data.msg);
+                this.msgError =error.response.data.msg;
+                this.msjcompra(this.msgError);
+              }
             })
       },
+      //limpia la ventanilla para generarfactura
       reset(){
-        this.editedItem.usuario='';
         this.editedItem.persona='';
         this.editedItem.tipoComprobante='';
         this.editedItem.serieComprobante='';
         this.editedItem.numComprobante='';
         this.editedItem.impuesto='';
         this.editedItem.total='';
-        this.editedItem.detalles=''
+        this.facturaArticulos=[]
       },
-      
-      
-      
-      
+    },
+    computed:{
+      totalVendido(){
+          return this.facturaArticulos.reduce((suma,articulo)=>{
+            return suma + (parseInt(articulo.cantidad)*articulo.precio)
+          },0)
+      }
     }
   }
 </script>
