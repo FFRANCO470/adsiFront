@@ -2,23 +2,23 @@
   <v-app>
     <v-container fluid>
       <template>
+        <!--tabla de categorias-->
         <v-data-table   class="ancho-tabla elevation-15 "  :headers="columnas" :items="categorias"  :search="search">
           <template v-slot:top>
             <v-toolbar  flat>
-
               <v-toolbar-title>Categorias</v-toolbar-title>
-              
+              <!--barra para buscar-->
               <v-spacer></v-spacer>
-              <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details  ></v-text-field>
+              <v-text-field v-model="search" append-icon="mdi-magnify" label="Buscar" single-line hide-details  ></v-text-field>
               <v-divider class="mx-4"   inset vertical></v-divider>
-              
+              <!--Botones descargar agregar-->
               <v-spacer></v-spacer>
               <v-dialog v-model="dialog"  max-width="500px"  >
                 <template v-slot:activator="{ on, attrs }">
-                  <v-btn  color="primary"  dark class="mb-2" v-bind="attrs"  v-on="on" >   Añadir  </v-btn>
-                  <v-icon  medium class="mr-4"   @click="crearPDF()" >  mdi-{{icons[3]}} </v-icon>
+                  <v-btn  depressed dark class="mb-2" v-bind="attrs"  v-on="on" >   Añadir  </v-btn>
+                  <v-icon  medium class="mr-4"   @click="crearPDF()" >mdi-download</v-icon>
                 </template>
-
+                <!--Formuario para almacenar o editar-->
                 <v-card >
                 <v-card-title><span class="text-h5">Categorias</span></v-card-title>
                   <v-card-text>
@@ -29,22 +29,19 @@
                     <v-btn  color="red darken-1" text class="mr-4" @click="dialog=false"> Cancelar </v-btn>
                   </v-card-text>    
                 </v-card>
-
               </v-dialog>
-
             </v-toolbar>
           </template>
-
+          <!--editar activar desactibar-->
           <template v-slot:[`item.actions`]="{ item }">
-            <v-icon   small  class="mr-2" @click="editar(item)" >  mdi-{{icons[0]}} </v-icon>
+            <v-icon   small  class="mr-2" @click="editar(item)" >mdi-pencil</v-icon>
             <template v-if="item.estado">
-              <v-icon small class="mr-2"  @click="activarDesactivarItem(2,item)"  > mdi-{{icons[1]}} </v-icon>
+              <v-icon small class="mr-2"  @click="activarDesactivarItem(2,item)"  >mdi-check</v-icon>
             </template>
             <template v-else>
-              <v-icon  small  @click="activarDesactivarItem(1,item)" > mdi-{{icons[2]}} </v-icon>
+              <v-icon  small  @click="activarDesactivarItem(1,item)" > mdi-block-helper </v-icon>
             </template>
           </template>
-
         </v-data-table>
       </template>
     </v-container>
@@ -58,13 +55,11 @@ import 'jspdf-autotable'
 import Swal from 'sweetalert2'
   export default {
     data: () => ({      
-      mensajeError:false,
-      msgError:'',
-      icons: ['pencil','check','block-helper','download'],
       drawer:false,
+      dialog:false,
+      msgError:'',
       search: '',
-      bd:0,
-      dialog: false,
+      bd:0,//agregar o editar
       rulesNombre: [
         value => !!value || 'Required.',
         value => (value && value.length <= 50) || 'Max 3 caracteres',
@@ -77,18 +72,16 @@ import Swal from 'sweetalert2'
         { text: 'Descripcion', value: 'descripcion', class:'teal accent-4 white--text' },
         { text: 'Actions', value: 'actions' , class:'teal accent-4 white--text',width:'10%',sortable: false }
       ],
-      
-      editedIndex: -1,
-      categorias: [{estado:'', nombre:'', descripcion:''}],
-      editedItem: {  estado:'', nombre: '', descripcion: '' },
-      defaultItem: {  estado:'', nombre: '', descripcion: '' },
-    }),
+      categorias: [{estado:'', nombre:'', descripcion:''}],//columnas de tablas
+      editedItem: {nombre: '', descripcion: '' },//objeto para enviar o editar
+    }),//data
 
     created(){
       this.obtenerCategorias();
     },
 
     methods: {
+      //msg de alerta
       msjcompra:function(tata){
         Swal.fire({
           position: 'top',
@@ -98,6 +91,7 @@ import Swal from 'sweetalert2'
           //5000 son 5 seg
           timer: 2000})
       },
+      //Traer todas las categorias
       obtenerCategorias(){
         let header = {headers:{"token" : this.$store.state.token}};
         axios.get("categoria",header)
@@ -119,60 +113,13 @@ import Swal from 'sweetalert2'
           }
           //window.setInterval(() => {this.mensajeError = false; console.log("hide alert after 3 seconds");}, 3000) 
         })
-      },
-
+      },//obtenerCategorias
+      //Limpiar el formulario despues de enviar o editar
       reset(){
         this.editedItem.nombre=''
         this.editedItem.descripcion=''
       },
-
-      activarDesactivarItem (accion , item) {
-        let id = item._id;
-        console.log(accion);
-        if(accion == 2){
-          console.log(id);
-          let me = this
-          let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`categoria/desactivar/${id}`,{}  , header)
-          .then(function(){
-            me.obtenerCategorias();
-          })
-          .catch(function(error){
-            console.log(error);
-            if(!error.response.data.msg){
-              console.log(error.response);
-              this.msgError = error.response.data.errors[0].msg;
-              this.msjcompra(this.msgError);
-            }else{
-              this.msgError = error.response.data.msg;
-              console.log(error.response.data.msg);
-              this.msgError =error.response.data.msg;
-              this.msjcompra(this.msgError);
-            }
-          });
-        }else if (accion==1){
-          console.log(id);
-          let me = this
-          let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`categoria/activar/${id}`,{},header)
-          .then(function(){
-            me.obtenerCategorias();
-          })
-          .catch(function(error){
-            console.log(error);
-            if(!error.response.data.msg){
-              console.log(error.response);
-              this.msgError = error.response.data.errors[0].msg;
-              this.msjcompra(this.msgError);
-            }else{
-              this.msgError = error.response.data.msg;
-              console.log(error.response.data.msg);
-              this.msgError =error.response.data.msg;
-              this.msjcompra(this.msgError);
-            }
-          });
-        }
-      },
+      //para editar la categoria
       editar(item){
         console.log(item);
         this.bd = 1;
@@ -180,7 +127,8 @@ import Swal from 'sweetalert2'
         this.editedItem.nombre=item.nombre;
         this.editedItem.descripcion=item.descripcion;
         this.dialog=true;
-      },
+      },//editar
+      //para almacenar o editar la categoria
       guardar(){
         if (this.bd == 0 ){
           console.log('estoy guardando'+this.bd+'almacenar');
@@ -190,6 +138,7 @@ import Swal from 'sweetalert2'
             .then((response)=>{
               console.log(response);
               me.obtenerCategorias(),
+              me.reset();
               this.dialog=false;
             })
             .catch((error)=>{
@@ -228,9 +177,54 @@ import Swal from 'sweetalert2'
               }  
             })
         }
-      },
-      
-      
+      },//guardar
+      //activar o desactivar
+      activarDesactivarItem (accion , item) {
+        let id = item._id;
+        if(accion == 2){
+          console.log(id);
+          let me = this
+          let header = {headers:{"token" : this.$store.state.token}};
+          axios.put(`categoria/desactivar/${id}`,{}  , header)
+          .then(function(){
+            me.obtenerCategorias();
+          })
+          .catch(function(error){
+            console.log(error);
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          });
+        }else if (accion==1){
+          let me = this
+          let header = {headers:{"token" : this.$store.state.token}};
+          axios.put(`categoria/activar/${id}`,{},header)
+          .then(function(){
+            me.obtenerCategorias();
+          })
+          .catch(function(error){
+            console.log(error);
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          });
+        }
+      },//activarDesactivarItem
+      //Crear pdf de todas las categorias
       crearPDF(){
         var rows=[];
         this.categorias.map(function(x){
@@ -259,8 +253,8 @@ import Swal from 'sweetalert2'
           ],
         });
         doc.save("Categorias.pdf");
-      }
-    },
+      }//crearPDF
+    },//methods
   }
 </script>
 <style>

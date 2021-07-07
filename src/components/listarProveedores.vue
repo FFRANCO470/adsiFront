@@ -4,21 +4,20 @@
       <template>
         <v-data-table  class="ancho-tabla elevation-15 " :headers="columnas" :items="personas" :search="search">
           <template v-slot:top>
+            <!--parte arriba tabla-->
             <v-toolbar flat  >
-
               <v-toolbar-title>Proveedores</v-toolbar-title>
-              
+              <!--buscar-->
               <v-spacer></v-spacer>
-              <v-text-field   v-model="search"  append-icon="mdi-magnify"  label="Search"  single-line hide-details></v-text-field>
+              <v-text-field   v-model="search"  append-icon="mdi-magnify"  label="Buscar"  single-line hide-details></v-text-field>
               <v-divider  class="mx-4" inset  vertical ></v-divider>
-              
               <v-spacer></v-spacer>
               <v-dialog v-model="dialog" max-width="500px"  >
                 <template v-slot:activator="{ on, attrs }">
-                  <v-btn  color="primary"  dark  class="mb-2"  v-bind="attrs"  v-on="on"  >  Añadir </v-btn>
-                  <v-icon  medium  class="mr-4"  @click="crearPDF()" >  mdi-{{icons[3]}} </v-icon>
+                  <v-btn  depressed dark  class="mb-2"  v-bind="attrs"  v-on="on"  >  Añadir </v-btn>
+                  <v-icon  medium  class="mr-4"  @click="crearPDF()" >  mdi-download </v-icon>
                 </template>
-
+                <!--formulario-->
                 <v-card >
                 <v-card-title><span class="text-h5">Proveedores</span></v-card-title>
                   <v-card-text>
@@ -35,18 +34,17 @@
                     </v-form >
                   </v-card-text>    
                 </v-card>
-                
               </v-dialog>
             </v-toolbar>
           </template>
-          
+          <!--editar activar desactivar-->
           <template v-slot:[`item.actions`]="{ item }">
-            <v-icon  small  class="mr-2"  @click="editar(item)" >  mdi-{{icons[0]}} </v-icon>
+            <v-icon  small  class="mr-2"  @click="editar(item)" >  mdi-pencil </v-icon>
             <template v-if="item.estado">
-              <v-icon  small class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-{{icons[1]}} </v-icon>
+              <v-icon  small class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-check </v-icon>
             </template>
             <template v-else>
-              <v-icon  small  @click="activarDesactivarItem(1,item)" >  mdi-{{icons[2]}} </v-icon>
+              <v-icon  small  @click="activarDesactivarItem(1,item)" >  mdi-block-helper </v-icon>
             </template>
           </template>
         </v-data-table>
@@ -63,10 +61,11 @@ import 'jspdf-autotable'
 import Swal from 'sweetalert2'
   export default {
     data: () => ({      
-      icons: ['pencil','check','block-helper','download'],
       drawer:false,
       search: '',
       valid: false,
+      bd:0,
+      dialog: false,
       rulesNombre: [
         value => !!value || 'Required.',
         value => (value && value.length <= 50) || 'Max 50 caracteres',
@@ -79,9 +78,6 @@ import Swal from 'sweetalert2'
       rulesNumDocumento: [value => (value.length <= 20) || 'Max 20 caracteres' ],
       rulesDireccion: [value => ( value.length <= 70) || 'Max 70 caracteres' ],
       rulesTelefono: [value => (value.length <= 15) || 'Max 15 caracteres' ],
-      bd:0,
-      dialog: false,
-      dialogDelete: false,
       columnas: [
         { text: 'Nombre', value: 'nombre', class:'teal accent-4 white--text' },
         { text: 'Tipo Documento', value: 'tipoDocumento' , class:'teal accent-4 white--text'},
@@ -97,21 +93,16 @@ import Swal from 'sweetalert2'
           direccion:'',  telefono:'', estado:'',  email:''
         },  
       ],
-
-      editedIndex: -1,
       editedItem: {
         tipoPersona:'', nombre:'', tipoDocumento:'', numDocumento:'',
         direccion:'', estado:'', telefono:'',  email:''
-      },
-      defaultItem: {
-        tipoPersona:'', nombre:'', tipoDocumento:'', numDocumento:'',
-        direccion:'',estadoP:'', telefono:'', email:''
-      },
-    }),
+      }
+    }),//data
     created(){
       this.obtenerPersonas();
     },
     methods: {
+      //msg alerta
       msjcompra:function(tata){
         Swal.fire({
           position: 'top',
@@ -121,6 +112,7 @@ import Swal from 'sweetalert2'
           //5000 son 5 seg
           timer: 2000})
       },
+      //traer proveedores
       obtenerPersonas(){
         let header = {headers:{"token" : this.$store.state.token}};
         axios.get("persona/listProveedores",header)
@@ -138,54 +130,32 @@ import Swal from 'sweetalert2'
               this.msjcompra(this.msgError);
             }
           })
+      },//obtenerPersonas
+      //limpiar formulario
+      reset(){
+        this.editedItem.nombre=''
+        this.editedItem.tipoPersona='',
+        this.editedItem.tipoDocumento=''
+        this.editedItem.numDocumento=''
+        this.editedItem.direccion=''
+        this.editedItem.telefono=''
+        this.editedItem.email=''
       },
-       activarDesactivarItem (accion , item) {
-        let id = item._id;
-        console.log(accion);
-        if(accion == 2){
-          console.log(id);
-          let me = this
-          let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`persona/desactivar/${id}`,{}, header)
-          .then(function(){
-            me.obtenerPersonas();
-          })
-          .catch(function(error){
-            console.log(error);
-            if(!error.response.data.msg){
-              console.log(error.response);
-              this.msgError = error.response.data.errors[0].msg;
-              this.msjcompra(this.msgError);
-            }else{
-              this.msgError = error.response.data.msg;
-              console.log(error.response.data.msg);
-              this.msgError =error.response.data.msg;
-              this.msjcompra(this.msgError);
-            }
-          });
-        }else if (accion==1){
-          console.log(id);
-          let me = this
-          let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`persona/activar/${id}`,  {},header)
-          .then(function(){
-            me.obtenerPersonas();
-          })
-          .catch(function(error){
-            console.log(error);
-            if(!error.response.data.msg){
-              console.log(error.response);
-              this.msgError = error.response.data.errors[0].msg;
-              this.msjcompra(this.msgError);
-            }else{
-              this.msgError = error.response.data.msg;
-              console.log(error.response.data.msg);
-              this.msgError =error.response.data.msg;
-              this.msjcompra(this.msgError);
-            }
-          });
-        }
-      },
+      //alistar variables para enviar 
+      editar(item){
+        console.log(item);
+        this.bd = 1;
+        this.id= item._id;
+        this.editedItem.nombre=item.nombre;
+        this.editedItem.tipoPersona='proveedor'
+        this.editedItem.tipoDocumento=item.tipoDocumento
+        this.editedItem.numDocumento=item.numDocumento
+        this.editedItem.direccion=item.direccion
+        this.editedItem.telefono=item.telefono
+        this.editedItem.email=item.email
+        this.dialog=true;
+      },//editar
+      //almacenar o editar
       guardar(){
         if (this.bd == 0 ){
           console.log('estoy guardando'+this.bd+'ALMACENAR');
@@ -254,29 +224,55 @@ import Swal from 'sweetalert2'
               }
             })
         }
-      },
-      editar(item){
-        console.log(item);
-        this.bd = 1;
-        this.id= item._id;
-        this.editedItem.nombre=item.nombre;
-        this.editedItem.tipoPersona='proveedor'
-        this.editedItem.tipoDocumento=item.tipoDocumento
-        this.editedItem.numDocumento=item.numDocumento
-        this.editedItem.direccion=item.direccion
-        this.editedItem.telefono=item.telefono
-        this.editedItem.email=item.email
-        this.dialog=true;
-      },
-      reset(){
-        this.editedItem.nombre=''
-        this.editedItem.tipoPersona='',
-        this.editedItem.tipoDocumento=''
-        this.editedItem.numDocumento=''
-        this.editedItem.direccion=''
-        this.editedItem.telefono=''
-        this.editedItem.email=''
-      },
+      },//guardar
+      activarDesactivarItem (accion , item) {
+        let id = item._id;
+        console.log(accion);
+        if(accion == 2){
+          console.log(id);
+          let me = this
+          let header = {headers:{"token" : this.$store.state.token}};
+          axios.put(`persona/desactivar/${id}`,{}, header)
+          .then(function(){
+            me.obtenerPersonas();
+          })
+          .catch(function(error){
+            console.log(error);
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          });
+        }else if (accion==1){
+          console.log(id);
+          let me = this
+          let header = {headers:{"token" : this.$store.state.token}};
+          axios.put(`persona/activar/${id}`,  {},header)
+          .then(function(){
+            me.obtenerPersonas();
+          })
+          .catch(function(error){
+            console.log(error);
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          });
+        }
+      },//activarDesactivarItem
+      
       crearPDF(){
         var rows=[];
         this.personas.map(function(x){
@@ -318,9 +314,9 @@ import Swal from 'sweetalert2'
           ]
         });
         doc.save("Proveedores.pdf");
-      }
-    },
-  }
+      }//crearPDF
+    },//methots
+  }//export default
 </script>
 <style>
   .ancho-tabla table{

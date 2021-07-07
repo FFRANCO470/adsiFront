@@ -6,18 +6,15 @@
           <template v-slot:top>
             <v-toolbar  flat >
               <v-toolbar-title>Usuarios</v-toolbar-title>
-
               <v-spacer></v-spacer>
-              <v-text-field  v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details ></v-text-field>
+              <v-text-field  v-model="search" append-icon="mdi-magnify" label="Buscar" single-line hide-details ></v-text-field>
               <v-divider  class="mx-4"  inset  vertical  ></v-divider>
-
               <v-spacer></v-spacer>
               <v-dialog  v-model="dialog" max-width="700px"  >
                 <template v-slot:activator="{ on, attrs }">
-                  <v-btn color="primary"  dark  class="mb-2"  v-bind="attrs" v-on="on">Añadir </v-btn>
-                  <v-icon medium class="mr-4"  @click="crearPDF()"> mdi-{{icons[3]}} </v-icon>
+                  <v-btn depressed dark  class="mb-2"  v-bind="attrs" v-on="on">Añadir </v-btn>
+                  <v-icon medium class="mr-4"  @click="crearPDF()"> mdi-download</v-icon>
                 </template>
-
                 <v-card>
                   <v-card-title><span class="text-h5">Usuarios</span></v-card-title>
                   <v-form v-model="valid">
@@ -28,13 +25,12 @@
                        :type=" mostrarContraseña ? 'text' : 'password'"
                         :append-icon="mostrarContraseña ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append="mostrarContraseña =! mostrarContraseña"/></v-col>
-                    
+                
                     <v-card-actions>
                       <v-col><v-btn color="blue darken-1" text @click="guardar()" >Guardar</v-btn></v-col>
                       <v-col><v-btn color="blue darken-1" text @click="reset"> Limpiar</v-btn></v-col>
                       <v-col><v-btn color="red darken-1" text @click="dialog=false"> Cancelar</v-btn></v-col>
                     </v-card-actions>
-
                   </v-form>
                 </v-card>
               </v-dialog>
@@ -42,12 +38,12 @@
           </template>
 
           <template v-slot:[`item.actions`]="{ item }">
-            <v-icon small class="mr-2"  @click="editar(item)" >  mdi-{{icons[0]}} </v-icon>
+            <v-icon small class="mr-2"  @click="editar(item)" >  mdi-pencil </v-icon>
             <template v-if="item.estado">
-              <v-icon   small  class="mr-2"  @click="activarDesactivarItem(2,item)"  > mdi-{{icons[1]}} </v-icon>
+              <v-icon   small  class="mr-2"  @click="activarDesactivarItem(2,item)"  > mdi-check</v-icon>
             </template>
             <template v-else>
-              <v-icon  small  @click="activarDesactivarItem(1,item)" > mdi-{{icons[2]}}</v-icon>
+              <v-icon  small  @click="activarDesactivarItem(1,item)" > mdi-block-helper}</v-icon>
             </template>
           </template>
         </v-data-table>
@@ -55,7 +51,6 @@
     </v-container>
   </v-app>
 </template>
-
 
 <script>
 import axios from 'axios'
@@ -65,32 +60,27 @@ import 'jspdf-autotable'
   export default {
     data: () => ({   
       items: ['ALMACENISTA_ROL', 'VENDEDOR_ROL', 'ADMIN_ROL'],
-      icons: ['pencil','check','block-helper','download'],
       value: null,
       mostrarContraseña:false,
       valid: false,
       drawer:false,
       search: '',
       dialog: false,
-      dialogDelete: false,
-
+      //id:'',
+      bd: 0,
+      msgError:'',
       rulesName: [
         value => !!value || 'Required.',
         value => (value && value.length <= 50) || 'Max 50 caracteres',
       ],
-
       rulesEmail: [
         value => !!value || 'Required.',
         value => (value && value.length <= 50) || 'Max 50 caracteres',
       ],
-
       rulesPass: [
         value => !!value || 'Required.',
         value => (value && value.length <= 50) || 'Max 50 caracteres',
       ],
-
-      id:'',
-      bd: 0,
       columnas: [
         { text: 'Nombre', value: 'nombre' , class:'teal accent-4 white--text'},
         { text: 'Email', value: 'email' , class:'teal accent-4 white--text'},
@@ -98,21 +88,15 @@ import 'jspdf-autotable'
         { text: 'Actions', value: 'actions' , class:'teal accent-4 white--text',width:'10%', sortable: false }
       ],
       usuarios: [{ nombre:'',  email:'', estado:'', password:'', rol:''}],
-
-      editedIndex: -1,
-
       editedItem: { nombre:'', email:'',estado:'', password:'',rol:'' },
-
-      defaultItem: { nombre:'',  email:'', estado:'', password:'', rol:'' },
-
-      msgError:'',
-    }),
+    }),//data
 
     created(){
       this.obtenerUsuarios();
     },
 
     methods: {
+      //msg alerta
       msjcompra:function(tata){
         Swal.fire({
           position: 'top',
@@ -121,7 +105,7 @@ import 'jspdf-autotable'
           showConfirmButton: false,
           timer: 2000})
       },
-
+      //traer usuarios
       obtenerUsuarios(){
         let header = {headers:{"token" : this.$store.state.token}};
         axios.get("usuario",header)
@@ -142,54 +126,25 @@ import 'jspdf-autotable'
             this.msjcompra(this.msgError);
           }
         })
+      },//obtenerUsuarios
+      //limpiar formulario
+      reset(){
+        this.editedItem.rol='null',
+        this.editedItem.nombre=''
+        this.editedItem.email=''
+        this.editedItem.password=''
       },
-      activarDesactivarItem (accion , item) {
-        let id = item._id;
-        console.log(accion);
-        if(accion == 2){
-          console.log(id);
-          let me = this
-          let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`usuario/desactivar/${id}`, {}, header)
-          .then(function(){
-            me.obtenerUsuarios();
-          })
-          .catch(function(error){
-            console.log(error);
-            if(!error.response.data.msg){
-              console.log(error.response);
-              this.msgError = error.response.data.errors[0].msg;
-              this.msjcompra(this.msgError);
-            }else{
-              this.msgError = error.response.data.msg;
-              console.log(error.response.data.msg);
-              this.msgError =error.response.data.msg;
-              this.msjcompra(this.msgError);
-            }
-          });
-        }else if (accion==1){
-          console.log(id);
-          let me = this
-          let header = {headers:{"token" : this.$store.state.token}};
-          axios.put(`usuario/activar/${id}`,  {},  header)
-          .then(function(){
-            me.obtenerUsuarios();
-          })
-          .catch(function(error){
-            console.log(error);
-            if(!error.response.data.msg){
-              console.log(error.response);
-              this.msgError = error.response.data.errors[0].msg;
-              this.msjcompra(this.msgError);
-            }else{
-              this.msgError = error.response.data.msg;
-              console.log(error.response.data.msg);
-              this.msgError =error.response.data.msg;
-              this.msjcompra(this.msgError);
-            }
-          });
-        }
+      //variables a editar
+      editar(item){
+        console.log(item);
+        this.bd = 1;
+        this.id= item._id;
+        this.editedItem.nombre=item.nombre;
+        this.editedItem.email=item.email
+        this.editedItem.rol=item.rol
+        this.dialog=true;
       },
+      //almacenar o editar
       guardar(){
         if (this.bd == 0 ){
           console.log('estoy guardando'+this.bd);
@@ -252,23 +207,55 @@ import 'jspdf-autotable'
               }
             })
         }
-      },
-      editar(item){
-        console.log(item);
-        this.bd = 1;
-        this.id= item._id;
-        this.editedItem.nombre=item.nombre;
-        this.editedItem.email=item.email
-        this.editedItem.rol=item.rol
-        this.dialog=true;
-      },
-      reset(){
-        this.editedItem.rol='null',
-        this.editedItem.nombre=''
-        this.editedItem.email=''
-        this.editedItem.password=''
-      },
-
+      },//guardar
+      //activar o desactivar
+      activarDesactivarItem (accion , item) {
+        let id = item._id;
+        console.log(accion);
+        if(accion == 2){
+          console.log(id);
+          let me = this
+          let header = {headers:{"token" : this.$store.state.token}};
+          axios.put(`usuario/desactivar/${id}`, {}, header)
+          .then(function(){
+            me.obtenerUsuarios();
+          })
+          .catch(function(error){
+            console.log(error);
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          });
+        }else if (accion==1){
+          console.log(id);
+          let me = this
+          let header = {headers:{"token" : this.$store.state.token}};
+          axios.put(`usuario/activar/${id}`,  {},  header)
+          .then(function(){
+            me.obtenerUsuarios();
+          })
+          .catch(function(error){
+            console.log(error);
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          });
+        }
+      },//activarDesactivarItem
       crearPDF(){
         var rows=[];
         this.usuarios.map(function(x){
@@ -301,9 +288,9 @@ import 'jspdf-autotable'
           ]
         });
         doc.save("Usuarios.pdf");
-      }
-    },
-  }
+      }//crear pdf
+    },//methods
+  }//export defaul
 </script>
 
 <style>

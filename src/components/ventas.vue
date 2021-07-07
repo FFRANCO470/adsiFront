@@ -12,7 +12,7 @@
               <v-divider  class="mx-4"   inset  vertical ></v-divider>
               <v-spacer></v-spacer>
                   <v-icon  medium   class="mr-4" @click="crearPDF()"  >mdi-download</v-icon>
-                  <v-btn color="primary"  dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
+                  <v-btn depressed dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
                   
             </v-toolbar>
           </template>
@@ -32,9 +32,9 @@
         <div v-if="muestra==1" class="container pa-4 white grid-list-sm">
             <v-container fluid>
               <v-row> 
-                <v-btn   @click="guardar2()"  color="blue"   dark  class="mb-2"> Generar venta</v-btn>
+                <v-btn   @click="guardar2()"  depressed dark   class="mb-2"> Generar venta</v-btn>
                 <v-spacer></v-spacer>
-                <v-btn   @click="cambioPage(0,false)"  color="Error"   dark  class="mb-2"> Cancelar</v-btn>
+                <v-btn   @click="cambioPage(0,false)"  color="red" dark class="mb-2"> Cancelar</v-btn>
               </v-row>
               <v-row>
                 <v-col cols="4">
@@ -55,7 +55,22 @@
                   <v-text-field  type="number" min="0" v-model="editedItem.impuesto"  label="Impuesto"></v-text-field>
                 </v-col>
               </v-row>
-                            <v-row>
+              <v-row>              
+                <v-col>
+                  <v-data-table class="ancho-tabla elevation-15"  :headers="mostradorArticulosTitle" :items="mostradorArticulos" :search="search" >
+                    <template v-slot:top>
+                      <v-toolbar flat >
+                        <v-spacer></v-spacer>
+                        <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
+                        <v-divider  class="mx-4"   inset  vertical ></v-divider>
+                      </v-toolbar>
+                    </template>
+
+                    <template  v-slot:item.actions="{ item }">
+                      <v-icon  small  class="mr-2" @click="facturar(item)" >mdi-cart </v-icon>
+                    </template>
+                  </v-data-table>  
+                </v-col>
                 <v-col>
                   <v-data-table class="ancho-tabla elevation-15" :headers="facturaArticulosTitle" :items="facturaArticulos"   >
 
@@ -81,24 +96,7 @@
                     </template>
 
                   </v-data-table> 
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col>
-                  <v-data-table class="ancho-tabla elevation-15"  :headers="mostradorArticulosTitle" :items="mostradorArticulos" :search="search" >
-                    <template v-slot:top>
-                      <v-toolbar flat >
-                        <v-spacer></v-spacer>
-                        <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
-                        <v-divider  class="mx-4"   inset  vertical ></v-divider>
-                      </v-toolbar>
-                    </template>
-
-                    <template  v-slot:item.actions="{ item }">
-                      <v-icon  small  class="mr-2" @click="facturar(item)" >mdi-cart </v-icon>
-                    </template>
-                  </v-data-table>  
-                </v-col>
+                </v-col>  
               </v-row>
 
               

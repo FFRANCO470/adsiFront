@@ -4,26 +4,25 @@
       <template>
         <v-data-table class="ancho-tabla elevation-15 "  :headers="columnas" :objetos="categorias"   :items="articulos" :search="search">
           <template v-slot:top>
+            <!--parte superior de la tabla-->
             <v-toolbar  flat >
-
               <v-toolbar-title>Articulos</v-toolbar-title>
-
+              <!--barra para buscar-->
               <v-spacer></v-spacer>
-              <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Search" single-line  hide-details ></v-text-field>
+              <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
               <v-divider  class="mx-4"  inset  vertical ></v-divider>
-              
+              <!--Botones descargar anadir-->
               <v-spacer></v-spacer>
               <v-dialog  v-model="dialog" width="700px" >
                 <template v-slot:activator="{ on, attrs }">            
-                  <v-btn  color="primary"  dark class="mb-2"  v-bind="attrs" v-on="on" > Añadir </v-btn>
-                  <v-icon  medium class="mr-4" @click="crearPDF()">  mdi-{{icons[3]}}  </v-icon>
+                  <v-btn  depressed dark class="mb-2"  v-bind="attrs" v-on="on" > Añadir </v-btn>
+                  <v-icon  medium class="mr-4" @click="crearPDF()">  mdi-download  </v-icon>
                 </template>
-                
+                <!--Formulario-->
                 <v-card>
                   <v-card-title><span class="text-h5">Articulos</span></v-card-title>
                   <v-card-text>
                     <v-form  ref="form" lazy-validation >
-
                       <v-row > <v-col>  <v-select  v-model="editedItem.categoria"  :items="categorias" label="Categoria" ></v-select>  </v-col> </v-row>
                       <v-row>
                         <v-col > <v-text-field  v-model="editedItem.codigo" :counter="64" label="Codigo" :rules="rulesCodigo" required  ></v-text-field>  </v-col>
@@ -35,28 +34,25 @@
                         <v-col >  <v-text-field type="number"  min="0" v-model="editedItem.precio"  label="Precio"  required ></v-text-field> </v-col>
                         <v-col > <v-text-field type="number"  min="0" v-model="editedItem.stock"  label="stock"  required  ></v-text-field>  </v-col>
                       </v-row>
-
                       <v-card-actions>
                         <v-col ><v-btn color="blue darken-1" text class="mr-4" @click="guardar()" >Guardar</v-btn> </v-col >
                         <v-col > <v-btn color="blue darken-1" text @click="reset"> Limpiar</v-btn></v-col >
                         <v-col ><v-btn color="red darken-1" text @click="dialog=false"> Cancelar</v-btn> </v-col >
                       </v-card-actions>
-
                     </v-form>
                   </v-card-text>
                 </v-card>
-
               </v-dialog>
             </v-toolbar>
           </template>
-
+          <!--botones para editar activar desactivar-->
           <template v-slot:[`item.actions`]="{ item }">
-            <v-icon small  class="mr-2"  @click="editar(item)"  > mdi-{{icons[0]}} </v-icon>
+            <v-icon small  class="mr-2"  @click="editar(item)"  > mdi-pencil </v-icon>
             <template v-if="item.estado">
-              <v-icon small  class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-{{icons[1]}} </v-icon> 
+              <v-icon small  class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-check </v-icon> 
             </template>
             <template v-else>
-              <v-icon small  @click="activarDesactivarItem(1,item)"  > mdi-{{icons[2]}} </v-icon>
+              <v-icon small  @click="activarDesactivarItem(1,item)"  > mdi-block-helper</v-icon>
             </template>
           </template>
 
@@ -73,9 +69,11 @@ import Swal from 'sweetalert2'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
   export default {
-    data: () => ({     
-      icons: ['pencil','check','block-helper','download'],
+    data: () => ({ 
       search: '',
+      msgError:'',
+      bd:0,
+      dialog: false,
       rulesCodigo: [
         value => !!value || 'Required.',
         value => (value && value.length <= 60) || 'Max 60 caracteres',
@@ -84,13 +82,7 @@ import 'jspdf-autotable'
         value => !!value || 'Required.',
         value => (value && value.length <= 50) || 'Max 50 caracteres',
       ],
-      rulesDescripcion:[
-        value => (value.length <= 255) || 'Max 255 caracteres'
-      ],
-      msgError:'',
-      bd:0,
-      dialog: false,
-      dialogDelete: false,
+      rulesDescripcion:[ value => (value.length <= 255) || 'Max 255 caracteres' ],
       columnas: [
         { text: 'Categoria', value: 'categoria.nombre', class:'teal accent-4 white--text',width:'13%'},
         { text: 'Codigo', value: 'codigo' , class:'teal accent-4 white--text',width:'11%' },
@@ -101,47 +93,45 @@ import 'jspdf-autotable'
         { text: 'stock', value: 'stock', class:'teal accent-4 white--text' ,width:'9%'},
         { text: 'Actions', value: 'actions', class:'teal accent-4 white--text',width:'10%',sortable: false   }
       ],
-      categorias: [ ],
-      articulos: [ {  codigo:'',  precio:'', costo:'', stock:'',  nombre:'',  estado:'',  descripcion:''},   ],
-      editedIndex: -1,
-      editedItem: {  categoria:'', estado:'', precio:'',  costo:'',  codigo:'',  stock:'', nombre:'',   descripcion:'',},
-      defaultItem: { categoria:'',  estado:'',   precio:'',   costo:'', codigo:'', stock:'',  nombre:'', descripcion:'' },
-    }),
+      articulos: [ {  codigo:'',  precio:'', costo:'', stock:'',  nombre:'',  estado:'',  descripcion:''}],//filas de la tabla
+      categorias: [ ],//lista desplegable de categorias
+      editedItem: {  categoria:'', estado:'', precio:'',  costo:'',  codigo:'',  stock:'', nombre:'',   descripcion:'',},//agtegar o editar
+    }),//data
     created(){
       this.obtenerArticulos();
       this.selectCategoria();
     },
     methods: {
+      //msg de alerta
       msjcompra:function(tata){ Swal.fire({ position: 'top', icon: 'error', title: tata, showConfirmButton: false, timer: 2000})  },
-
+      //traer articulos
       obtenerArticulos(){
         let header = {headers:{"token" : this.$store.state.token}};
         axios.get("articulo",header)
-        .then(response =>{   
-          console.log(response);  
-          this.articulos = response.data.articulos
-        })
-        .catch((error) =>{
-          console.log(error.response);
-          if(!error.response.data.msg){
+          .then(response =>{   
+            console.log(response);  
+            this.articulos = response.data.articulos
+          })
+          .catch((error) =>{
             console.log(error.response);
-            this.msgError = error.response.data.errors[0].msg;
-            this.msjcompra(this.msgError);
-          }else{
-            this.msgError = error.response.data.msg;
-            console.log(error.response.data.msg);
-            this.msgError =error.response.data.msg;
-            this.msjcompra(this.msgError);
-          }
-        })
-      },
-
+            if(!error.response.data.msg){
+              console.log(error.response);
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError = error.response.data.msg;
+              console.log(error.response.data.msg);
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          })
+      },//obtenerArticulos
+      //traer categorias para colocarlas en la lista desplegable
       selectCategoria() {
         let me = this;
         let categoriaArray = [];
         let header = { headers: { "token": this.$store.state.token } };
-        axios
-          .get("categoria", header)
+        axios.get("categoria", header)
           .then(function (response) {
             categoriaArray = response.data.categoria;
             categoriaArray.map(function (x) {
@@ -164,56 +154,78 @@ import 'jspdf-autotable'
               this.msjcompra(this.msgError);
             }
           });
-      },
-      
+      },//selectCategoria
+      //activar o desactivar articulos
       activarDesactivarItem (accion , item) {
         let id = item._id;
         console.log(accion);
         if(accion == 2){
           console.log(id);
-          let me = this
+          let me = this;
           let header = {headers:{"token" : this.$store.state.token}};
           axios.put(`articulo/desactivar/${id}`,{estado:0}, header)
-          .then(function(){
-            me.obtenerArticulos();
-          })
-          .catch(function(error){
-            console.log(error);
-            if(!error.response.data.msg){
-              console.log(error.response);
-              this.msgError = error.response.data.errors[0].msg;
-              this.msjcompra(this.msgError);
-            }else{
-              this.msgError = error.response.data.msg;
-              console.log(error.response.data.msg);
-              this.msgError =error.response.data.msg;
-              this.msjcompra(this.msgError);
-            }
-          });
+            .then(function(){
+              me.obtenerArticulos();
+            })
+            .catch(function(error){
+              console.log(error);
+              if(!error.response.data.msg){
+                console.log(error.response);
+                this.msgError = error.response.data.errors[0].msg;
+                this.msjcompra(this.msgError);
+              }else{
+                this.msgError = error.response.data.msg;
+                console.log(error.response.data.msg);
+                this.msgError =error.response.data.msg;
+                this.msjcompra(this.msgError);
+              }
+            });
         }else if (accion==1){
           console.log(id);
           let me = this
           let header = {headers:{"token" : this.$store.state.token}};
           axios.put(`articulo/activar/${id}`, {estado:1}, header)
-          .then(function(){
-            me.obtenerArticulos();
-          })
-          .catch(function(error){
-            console.log(error);
-            if(!error.response.data.msg){
-              console.log(error.response);
-              this.msgError = error.response.data.errors[0].msg;
-              this.msjcompra(this.msgError);
-            }else{
-              this.msgError = error.response.data.msg;
-              console.log(error.response.data.msg);
-              this.msgError =error.response.data.msg;
-              this.msjcompra(this.msgError);
-            }
-          });
+            .then(function(){
+              me.obtenerArticulos();
+            })
+            .catch(function(error){
+              console.log(error);
+              if(!error.response.data.msg){
+                console.log(error.response);
+                this.msgError = error.response.data.errors[0].msg;
+                this.msjcompra(this.msgError);
+              }else{
+                this.msgError = error.response.data.msg;
+                console.log(error.response.data.msg);
+                this.msgError =error.response.data.msg;
+                this.msjcompra(this.msgError);
+              }
+            });
         }
+      },//selectCategoria
+      //limpiar formulario despues de agregar
+      reset(){
+        this.editedItem.codigo=''
+        this.editedItem.nombre=''
+        this.editedItem.precio=''
+        this.editedItem.costo=''
+        this.editedItem.stock=''
+        this.editedItem.descripcion=''
       },
-
+      //variables para enviar a almacenar o editar
+      editar(item){
+        console.log(item);
+        this.bd = 1;
+        this.id= item._id;
+        this.editedItem.nombre=item.nombre;
+        this.editedItem.precio=item.precio
+        this.editedItem.costo=item.costo
+        this.editedItem.descripcion=item.descripcion
+        this.editedItem.codigo=item.codigo
+        this.editedItem.stock=item.stock
+        this.dialog=true;
+      },
+      //almacenar o editar
       guardar(){
         if (this.bd == 0 ){
           console.log('estoy guardando'+this.bd);
@@ -232,7 +244,8 @@ import 'jspdf-autotable'
             )
             .then((response)=>{
               console.log(response);
-              me.obtenerArticulos(),
+              me.obtenerArticulos();
+              me.reset();
               this.dialog=false;
             })
             .catch((error)=>{
@@ -281,27 +294,8 @@ import 'jspdf-autotable'
               }
             })
         }
-      },
-      editar(item){
-        console.log(item);
-        this.bd = 1;
-        this.id= item._id;
-        this.editedItem.nombre=item.nombre;
-        this.editedItem.precio=item.precio
-        this.editedItem.costo=item.costo
-        this.editedItem.descripcion=item.descripcion
-        this.editedItem.codigo=item.codigo
-        this.editedItem.stock=item.stock
-        this.dialog=true;
-      },
-      reset(){
-        this.editedItem.codigo=''
-        this.editedItem.nombre=''
-        this.editedItem.precio=''
-        this.editedItem.costo=''
-        this.editedItem.stock=''
-        this.editedItem.descripcion=''
-      },
+      },//guardar
+      //crear el pdf
       crearPDF(){
         var rows=[];
         this.articulos.map(function(x){
@@ -343,9 +337,9 @@ import 'jspdf-autotable'
           ],
         })
         doc.save("Articulos.pdf");
-      }
-    },
-  }
+      }//crearPDF
+    },//methods
+  }//export default
 </script>
 <style>
   .ancho-tabla table{
