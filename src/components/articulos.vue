@@ -238,7 +238,7 @@ import 'jspdf-autotable'
             descripcion:this.editedItem.descripcion,
             precio:this.editedItem.precio,
             costo:this.editedItem.costo,
-            stock:this.editedItem.stock
+            stock:parseFloat(this.editedItem.stock)
             },
             header
             )
@@ -270,7 +270,7 @@ import 'jspdf-autotable'
             nombre:this.editedItem.nombre,
             precioventa:this.editedItem.precio,
             codigo:this.editedItem.codigo,
-            stock:this.editedItem.stock,
+            stock:parseFloat(this.editedItem.stock),
             descripcion:this.editedItem.descripcion
             },
             header

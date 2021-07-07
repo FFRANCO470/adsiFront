@@ -1,19 +1,19 @@
 <template>
   <v-app>
     <v-container fluid>
-
       <template>
+        <!--tabla se muestra en la vista inicial-->
         <v-data-table v-if="muestra == 0" class="ancho-tabla elevation-15" :headers="columnas" :items="ventas" :search="search" >
           <template v-slot:top>
+            <!--parte alta de la tabla-->
             <v-toolbar flat >
               <v-toolbar-title>Ventas: {{totalVentas}}</v-toolbar-title>
               <v-spacer></v-spacer>
               <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
               <v-divider  class="mx-4"   inset  vertical ></v-divider>
               <v-spacer></v-spacer>
-                  <v-icon  medium   class="mr-4" @click="crearPDF()"  >mdi-download</v-icon>
-                  <v-btn depressed dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
-                  
+               <v-icon  medium   class="mr-4" @click="crearPDF()"  >mdi-download</v-icon>
+              <v-btn depressed dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
             </v-toolbar>
           </template>
           <template v-slot:item.actions="{ item }">
@@ -29,6 +29,7 @@
       </template>
 
       <template>
+        <!--cambiar de vista para generar factura-->
         <div v-if="muestra==1" class="container pa-4 white grid-list-sm">
             <v-container fluid>
               <v-row> 
@@ -52,11 +53,21 @@
                   <v-autocomplete  v-model="editedItem.persona" :items="clientes"  label="Cliente"  ></v-autocomplete>
                 </v-col>
                 <v-col cols="4">
-                  <v-text-field  type="number" min="0" v-model="editedItem.impuesto"  label="Impuesto"></v-text-field>
+                  <v-text-field  type="number" min="0" v-model="editedItem.impuesto" default=0 label="Impuesto"></v-text-field>
                 </v-col>
               </v-row>
+              <v-row>
+                  <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Total parcial : {{totalVendido}}</span></div>        
+              </v-row>              
+              <v-row>
+                  <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Total impuesto : {{TotalFinalImpuesto}}</span></div> 
+              </v-row>              
+              <v-row>
+                  <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Total neto : {{totalVendido+TotalFinalImpuesto}}</span></div>        
+              </v-row>              
               <v-row>              
                 <v-col>
+                  <!--tabla con todos los articulos-->
                   <v-data-table class="ancho-tabla elevation-15"  :headers="mostradorArticulosTitle" :items="mostradorArticulos" :search="search" >
                     <template v-slot:top>
                       <v-toolbar flat >
@@ -65,24 +76,23 @@
                         <v-divider  class="mx-4"   inset  vertical ></v-divider>
                       </v-toolbar>
                     </template>
-
+                    <!--coge el articulo y lo envia al metodo apara facturar, agregar a otro array y eliminar de este-->
                     <template  v-slot:item.actions="{ item }">
                       <v-icon  small  class="mr-2" @click="facturar(item)" >mdi-cart </v-icon>
                     </template>
                   </v-data-table>  
                 </v-col>
                 <v-col>
+                  <!--tabla con los articulos vendidos-->
                   <v-data-table class="ancho-tabla elevation-15" :headers="facturaArticulosTitle" :items="facturaArticulos"   >
-
                     <template v-slot:top>
                       <v-toolbar flat >
-                        <v-toolbar-title>Total: {{totalVendido}}</v-toolbar-title>
                         <v-spacer></v-spacer>
                         <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
                         <v-divider  class="mx-4"   inset  vertical ></v-divider>
                       </v-toolbar>
                     </template>
-                    
+                    <!--modificar las cantidades-->
                     <template  v-slot:item.cantidad="props">
                       <v-text-field  v-model="props.item.cantidad"  min=0 name="quantity"  outlined type="number"></v-text-field>
                     </template>
@@ -94,16 +104,14 @@
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon  small  class="mr-2" @click="desfacturar(item)" >mdi-delete </v-icon>
                     </template>
-
                   </v-data-table> 
                 </v-col>  
-              </v-row>
-
-              
+              </v-row>  
             </v-container>                
         </div>
       </template>
       <template>
+        <!--para mostar a detalle la factura-->
         <div v-if="muestra==2" class="container pa-4 white grid-list-sm">
           <v-container>
             <v-row>
@@ -114,21 +122,27 @@
           </v-container>
           <template>
             <v-row>
-              <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Fecha : {{ventaConDetalleFecha}}</span></div>
+              <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Fecha : {{ventaConDetalleFecha}} </span></div>
               <div style="margin: 30px 0 0 20px;"><span class="black--text">Estado : {{ventaConDetalleEstado}}</span></div>
             </v-row>
             <v-row>
-              <div style="margin: 30px 0 0 20px;"><span class="black--text">Cliente : {{ventaConDetalleCliente.nombre}}</span></div>
-              <div style="margin: 30px 0 0 20px;"><span class="black--text">Vendedor : {{ventaConDetalleVendedor.nombre}}</span></div>
-            </v-row>
-            <v-row>
-              <div style="margin: 30px 0 0 20px; "><span class="black--text">Tipo Comprobante : {{ventaConDetalleTipoComp}}</span></div>
-              <div style="margin: 30px 0 0 100px;"><span class="black--text">Serie : {{ventaConDetalleSerie}}</span></div>
-              <div style="margin: 30px 0 0 100px;"><span class="black--text"># Comprobante : {{ventaConDetalleNumComp}}</span></div>
-            </v-row>
-            <v-row>
-              <div style="margin: 30px 0 0 20px;"><span class="black--text">Impuesto : {{ventaConDetalleImpuesto}}</span></div>
-              <div style="margin: 30px 0 0 100px;"><span class="black--text">Total : {{ventaConDetalleTotal}}</span></div>
+              <div style="margin: 30px 0 0 20px;">
+              <p align="left">
+                <strong>Cliente :</strong>{{ventaConDetalleCliente.nombre}}<br>
+                <strong>Tipo documento :</strong>{{datosCliente.tipoDocumento}}<br>
+                <strong>Num documento :</strong>{{datosCliente.numDocumento}}<br>
+                <strong>Email:</strong>{{datosCliente.email}}<br>
+                <strong>Telefono:</strong>{{datosCliente.telefono}}<br>
+                <strong>Direccion:</strong>{{datosCliente.direccion}}<br><br>
+                <strong>Vendedor : </strong> {{ventaConDetalleVendedor.nombre}}<br>
+                <strong>Tipo Comprobante :</strong> {{ventaConDetalleTipoComp}}<br>
+                <strong>Serie :</strong> {{ventaConDetalleSerie}}<br>
+                <strong># Comprobante :</strong> {{ventaConDetalleNumComp}}<br><br>
+                <strong>Total parcial : </strong>{{ventaConDetalleTotal}}<br>
+                <strong>Total impuesto ({{ventaConDetalleImpuesto*100}}%):</strong>{{ventaConDetalleTotal*ventaConDetalleImpuesto}} <br>
+                <strong>Total Neto:</strong> {{ventaConDetalleTotal+(ventaConDetalleTotal*ventaConDetalleImpuesto)}}  
+              </p>
+              </div>
             </v-row>
             <v-row>
               <v-col >
@@ -141,7 +155,6 @@
                 </v-data-table>
               </v-col >
             </v-row>
-            {{ventaConDetalleDetalles}}
           </template>
         </div>
       </template>
@@ -189,6 +202,7 @@ import 'jspdf-autotable'
       ventaConDetalleImpuesto:'',
       ventaConDetalleTotal:'',
       ventaConDetalleDetalles:[],
+      datosCliente:{},
       articulosVendidos:[
         { text: 'Nombre', value: 'nombre',class:'teal accent-4 white--text' },
         { text: 'Cantidad', value: 'cantidad',class:'teal accent-4 white--text' },
@@ -256,7 +270,7 @@ import 'jspdf-autotable'
             this.msjcompra(this.msgError);
           }
         })
-      },
+      },//obtenerVenta
       //cambiar vistas
       cambioPage(num,item){
         if(num==0){
@@ -269,7 +283,7 @@ import 'jspdf-autotable'
           this.muestra=num;
           this.traerVentaDetalle(item);
         }
-      },
+      },//cambioPage
       //activar desactivar venta
       activarDesactivarItem (accion , item) {
         let id = item._id;
@@ -317,7 +331,7 @@ import 'jspdf-autotable'
               }
             });
         }
-      },
+      },//activarDesactivarItem
       //imprimer todas las ventas
       crearPDF(){
         var rows=[];
@@ -362,7 +376,7 @@ import 'jspdf-autotable'
           ]
         })
         doc.save("Ventas.pdf");
-      },
+      },//crearPDF
       //traer venta con detalles
       traerVentaDetalle(item){
         let id = item._id;
@@ -382,6 +396,30 @@ import 'jspdf-autotable'
             this.ventaConDetalleDetalles=response.data.venta.detalles
             this.artiVendidos=this.ventaConDetalleDetalles
             this.meter(this.ventaConDetalleDetalles)
+            this.traerCliente(this.ventaConDetalleCliente)
+          })
+          .catch((error) =>{
+            console.log(error.response);
+            if(!error.response.data.msg){
+                console.log(error.response);
+                this.msgError = error.response.data.errors[0].msg;
+                this.msjcompra(this.msgError);
+              }else{
+                this.msgError = error.response.data.msg;
+                console.log(error.response.data.msg);
+                this.msgError =error.response.data.msg;
+                this.msjcompra(this.msgError);
+              }
+          })
+      },//traerVentaDetalle
+      traerCliente(item){
+        let id = item._id;
+        let header = {headers:{"token" : this.$store.state.token}};
+        axios.get(`persona/byid/${id}`,header)
+          .then(response =>{
+            console.log('cliente');
+            console.log(response);
+            this.datosCliente=response.data.persona;
           })
           .catch((error) =>{
             console.log(error.response);
@@ -412,7 +450,7 @@ import 'jspdf-autotable'
         });
         console.log(pepe);
         this.articuloIncluido=pepe
-      },
+      },//meter
       //imprimir la venta
       crearPDFVenta(){
         const doc = new  jsPDF();
@@ -425,21 +463,27 @@ import 'jspdf-autotable'
             precioSub : x.precio*x.cantidad
           })
         })
-        doc.setFontSize(12);
+        doc.setFontSize(11);
         doc.text(`Fecha : ${this.ventaConDetalleFecha}`,15,15);
         doc.text(`Estado : ${this.ventaConDetalleEstado}`,150,15);
-        doc.text(`Cliente : ${this.ventaConDetalleCliente.nombre}`,15,25);
-        doc.text(`Vendedor : ${this.ventaConDetalleVendedor.nombre}`,15,35);
-        doc.text(`Tipo comprobante : ${this.ventaConDetalleTipoComp}`,15,45);
-        doc.text(`Serie : ${this.ventaConDetalleSerie}`,15,55);
-        doc.text(`# Comprobante : ${this.ventaConDetalleNumComp}`,15,65);
-        doc.text(`Total : ${this.ventaConDetalleTotal}`,15,75);
-        doc.text(`Impuesto : ${this.ventaConDetalleImpuesto}`,15,85);
+        doc.text(`Cliente :                 ${this.ventaConDetalleCliente.nombre}`,15,35);
+        doc.text(`Tipo documento :   ${this.datosCliente.tipoDocumento}`,15,40);
+        doc.text(`Num documento :   ${this.datosCliente.numDocumento}`,15,45);
+        doc.text(`Email :                     ${this.datosCliente.email}`,15,50);
+        doc.text(`Telefono :                ${this.datosCliente.telefono}`,15,55);
+        doc.text(`Direccion :               ${this.datosCliente.direccion}`,15,60);
+        doc.text(`Vendedor :               ${this.ventaConDetalleVendedor.nombre}`,15,70);
+        doc.text(`Tipo comprobante :  ${this.ventaConDetalleTipoComp}`,15,75);
+        doc.text(`Serie :                      ${this.ventaConDetalleSerie}`,15,80);
+        doc.text(`# Comprobante :      ${this.ventaConDetalleNumComp}`,15,85);
+        doc.text(`Total parcial:           ${this.ventaConDetalleTotal} `,15,95);
+        doc.text(`Impuesto (${this.ventaConDetalleImpuesto}) :            ${this.ventaConDetalleTotal*this.ventaConDetalleImpuesto}`,15,100);
+        doc.text(`Total Neto:              ${this.ventaConDetalleTotal+(this.ventaConDetalleTotal*this.ventaConDetalleImpuesto)}`,15,105);
         doc.autoTable({
           didDrawPage:function(){
-            doc.text("Articulos vendidos:",15,100);
+            doc.text("Articulos vendidos:",15,115);
           },
-          startY: 105,
+          startY: 120,
           columnStyles: {
             0: {cellWidth: 40},
             1: {cellWidth: 40},
@@ -457,7 +501,7 @@ import 'jspdf-autotable'
           cursor: { x: 15, y: 115 }
         }),
         doc.save("Factura de venta.pdf");
-      },
+      },//crearPDFVenta
       //traer los clientes para colocarlos en la venta
       obtenerPersonas(){
         let me = this;
@@ -486,7 +530,7 @@ import 'jspdf-autotable'
               this.msjcompra(this.msgError);
             }
           })
-      },
+      },//obtenerPersonas
       //alista los articulos para venderlos
       meterArticulos(mostradorArticulosLlegar){
         var pepe=[];
@@ -503,7 +547,7 @@ import 'jspdf-autotable'
         })
         console.log(pepe);
         this.mostradorArticulos=pepe;
-      },
+      },//meterArticulos
       //trae los articulos para venderlos
       obtenerArtirticulos(){
         let header = {headers:{"token" : this.$store.state.token}};
@@ -526,7 +570,7 @@ import 'jspdf-autotable'
             this.msjcompra(this.msgError);
           }
         })
-      },
+      },//obtenerArtirticulos
       //agrega el articulo a la venta
       facturar(item){
         this.editedIndex=this.mostradorArticulos.indexOf(item);
@@ -534,7 +578,7 @@ import 'jspdf-autotable'
         this.mostradorArticulos.splice(this.editedIndex,1);
         console.log(this.facturaArticulos);
         console.log(this.editedIndex);
-      },
+      },//facturar
       //quita el articulo de la venta
       desfacturar(item){
         this.editedIndex=this.facturaArticulos.indexOf(item)
@@ -542,7 +586,7 @@ import 'jspdf-autotable'
         this.facturaArticulos.splice(this.editedIndex,1)
         console.log(this.facturaArticulos);
         console.log(this.editedIndex);
-      },
+      },//desfacturar
       //alista las variables para mandarlas a la bd online
       guardar2(){
         var usuario=this.$store.state.idUser;
@@ -550,8 +594,8 @@ import 'jspdf-autotable'
         var tipoComprobante=this.editedItem.tipoComprobante;
         var serieComprobante=this.editedItem.serieComprobante;
         var numComprobante=this.editedItem.numComprobante;
-        var impuesto=parseFloat(this.editedItem.impuesto)/100;
-        var total=     Math.ceil((this.totalVendido)*(1+impuesto)/1)*1;
+        var impuesto=this.editedItem.impuesto/100;
+        var total= this.totalVendido;
         var detalles=this.facturaArticulos;
         console.log(usuario);
         console.log(persona);
@@ -562,7 +606,7 @@ import 'jspdf-autotable'
         console.log(total);
         console.log(detalles);
         this.guardar(usuario,persona,tipoComprobante,serieComprobante,numComprobante,impuesto,total,detalles)
-      },
+      },//guardar1
       //agrega la venta a la bd online
       guardar(user,person,tipo,serie,num,imp,total,deta){
         console.log('estoy guardando'+this.bd);
@@ -598,7 +642,7 @@ import 'jspdf-autotable'
                 this.msjcompra(this.msgError);
               }
             })
-      },
+      },//guardar
       //limpia la ventanilla para generarfactura
       reset(){
         this.editedItem.persona='';
@@ -608,19 +652,25 @@ import 'jspdf-autotable'
         this.editedItem.impuesto='';
         this.editedItem.total='';
         this.facturaArticulos=[]
-      },
+      },//reset
     },
     computed:{
+      
+      totalVentas(){
+          return this.ventas.reduce((suma,venta)=>{
+            return suma + parseFloat(venta.total)
+          },0)
+      },
       totalVendido(){
           return this.facturaArticulos.reduce((suma,articulo)=>{
             return suma + (parseInt(articulo.cantidad)*articulo.precio)
           },0)
       },
-      totalVentas(){
-          return this.ventas.reduce((suma,venta)=>{
-            return suma + parseFloat(venta.total)
-          },0)
-      }
+      TotalFinalImpuesto(){
+        if(!this.editedItem.impuesto)return 0
+        var totalImpues =this.totalVendido*this.editedItem.impuesto/100 
+        return totalImpues.toFixed(2)
+      },
     }
   }
 </script>
