@@ -11,11 +11,13 @@
               <v-spacer></v-spacer>
               <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
               <v-divider  class="mx-4"   inset  vertical ></v-divider>
+              <!--Boton descargar y cambio de vista apara agregar venta-->
               <v-spacer></v-spacer>
                <v-icon  medium   class="mr-4" @click="crearPDF()"  >mdi-download</v-icon>
               <v-btn depressed dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
             </v-toolbar>
           </template>
+          <!--opciones sober las ventas-->
           <template v-slot:item.actions="{ item }">
             <v-icon  small  class="mr-2" @click="cambioPage(2,item)" >mdi-clipboard-outline </v-icon>
             <template v-if="item.estado">
@@ -27,9 +29,8 @@
           </template>
         </v-data-table>
       </template>
-
+      <!--cambiar de vista para generar factura-->
       <template>
-        <!--cambiar de vista para generar factura-->
         <div v-if="muestra==1" class="container pa-4 white grid-list-sm">
             <v-container fluid>
               <v-row> 
@@ -37,24 +38,15 @@
                 <v-spacer></v-spacer>
                 <v-btn   @click="cambioPage(0,false)"  color="red" dark class="mb-2"> Cancelar</v-btn>
               </v-row>
+              <!--formulario-->
               <v-row>
-                <v-col cols="4">
-                  <v-autocomplete v-model="editedItem.tipoComprobante"  :items="tiposComprobantaVenta"   label="Tipo Comprobante" ></v-autocomplete>
-                </v-col>
-                <v-col cols="4">
-                  <v-text-field  v-model="editedItem.serieComprobante"  label="Serie comprobante"></v-text-field>
-                </v-col>
-                <v-col cols="4">
-                  <v-text-field  type="number" min="0" v-model="editedItem.numComprobante"  label="Numero comprobante"></v-text-field>
-                </v-col>
+                <v-col cols="4"><v-autocomplete v-model="editedItem.tipoComprobante"  :items="tiposComprobantaVenta"   label="Tipo Comprobante" ></v-autocomplete></v-col>
+                <v-col cols="4"> <v-text-field  v-model="editedItem.serieComprobante"  label="Serie comprobante"></v-text-field></v-col>
+                <v-col cols="4"><v-text-field  type="number" min="0" v-model="editedItem.numComprobante"  label="Numero comprobante"></v-text-field></v-col>
               </v-row>
               <v-row>
-                <v-col cols="8">
-                  <v-autocomplete  v-model="editedItem.persona" :items="clientes"  label="Cliente"  ></v-autocomplete>
-                </v-col>
-                <v-col cols="4">
-                  <v-text-field  type="number" min="0" v-model="editedItem.impuesto" default=0 label="Impuesto"></v-text-field>
-                </v-col>
+                <v-col cols="8"> <v-autocomplete  v-model="editedItem.persona" :items="clientes"  label="Cliente"  ></v-autocomplete> </v-col>
+                <v-col cols="4">  <v-text-field  type="number" min="0" v-model="editedItem.impuesto" default=0 label="Impuesto"></v-text-field></v-col>
               </v-row>
               <v-row>
                   <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Total parcial : {{totalVendido}}</span></div>        
@@ -65,9 +57,9 @@
               <v-row>
                   <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Total neto : {{totalVendido+TotalFinalImpuesto}}</span></div>        
               </v-row>              
-              <v-row>              
+              <v-row>  
+              <!--tabla con todos los articulos-->            
                 <v-col>
-                  <!--tabla con todos los articulos-->
                   <v-data-table class="ancho-tabla elevation-15"  :headers="mostradorArticulosTitle" :items="mostradorArticulos" :search="search" >
                     <template v-slot:top>
                       <v-toolbar flat >
@@ -76,14 +68,14 @@
                         <v-divider  class="mx-4"   inset  vertical ></v-divider>
                       </v-toolbar>
                     </template>
-                    <!--coge el articulo y lo envia al metodo apara facturar, agregar a otro array y eliminar de este-->
+                    <!--opcion para agregar al array para vender-->
                     <template  v-slot:item.actions="{ item }">
                       <v-icon  small  class="mr-2" @click="facturar(item)" >mdi-cart </v-icon>
                     </template>
                   </v-data-table>  
                 </v-col>
+                <!--tabla con los articulos vendidos-->
                 <v-col>
-                  <!--tabla con los articulos vendidos-->
                   <v-data-table class="ancho-tabla elevation-15" :headers="facturaArticulosTitle" :items="facturaArticulos"   >
                     <template v-slot:top>
                       <v-toolbar flat >
@@ -100,7 +92,7 @@
                     <template v-slot:[`item.subtotal`]="{ item }">
                       {{item.precio*item.cantidad}}
                     </template>
-
+                    <!--opcion para quitar el articulo del array de venta-->
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon  small  class="mr-2" @click="desfacturar(item)" >mdi-delete </v-icon>
                     </template>
@@ -202,7 +194,7 @@ import 'jspdf-autotable'
       ventaConDetalleImpuesto:'',
       ventaConDetalleTotal:'',
       ventaConDetalleDetalles:[],
-      datosCliente:{},
+      datosCliente:{},//almacenar datos del cliente
       articulosVendidos:[
         { text: 'Nombre', value: 'nombre',class:'teal accent-4 white--text' },
         { text: 'Cantidad', value: 'cantidad',class:'teal accent-4 white--text' },
@@ -248,6 +240,19 @@ import 'jspdf-autotable'
       //msg de alerta
       msjcompra:function(tata){ Swal.fire({ position: 'top', icon: 'error', title: tata, showConfirmButton: false, timer: 2000})  },
       listo:function(){ Swal.fire({ position: 'top', icon: 'success ', title: 'Venta realizada', showConfirmButton: false, timer: 2000})  },
+      //cambiar vistas
+      cambioPage(num,item){
+        if(num==0){
+          this.muestra=num;
+        }else if(num==1){
+          this.muestra=num;
+          this. obtenerPersonas();
+          this.obtenerArtirticulos();
+        }else{
+          this.muestra=num;
+          this.traerVentaDetalle(item);
+        }
+      },//cambioPage
       //llenar tabla de ventas
       obtenerVenta(){
         let header = {headers:{"token" : this.$store.state.token}};
@@ -271,19 +276,7 @@ import 'jspdf-autotable'
           }
         })
       },//obtenerVenta
-      //cambiar vistas
-      cambioPage(num,item){
-        if(num==0){
-          this.muestra=num;
-        }else if(num==1){
-          this.muestra=num;
-          this. obtenerPersonas();
-          this.obtenerArtirticulos();
-        }else{
-          this.muestra=num;
-          this.traerVentaDetalle(item);
-        }
-      },//cambioPage
+      
       //activar desactivar venta
       activarDesactivarItem (accion , item) {
         let id = item._id;
