@@ -239,7 +239,7 @@ import 'jspdf-autotable'
     methods: {
       //msg de alerta
       msjcompra:function(tata){ Swal.fire({ position: 'top', icon: 'error', title: tata, showConfirmButton: false, timer: 2000})  },
-      listo:function(){ Swal.fire({ position: 'top', icon: 'success ', title: 'Venta realizada', showConfirmButton: false, timer: 2000})  },
+      listo:function(){ Swal.fire({ position: 'top', icon: 'success', title: 'Venta realizada', showConfirmButton: false, timer: 2000})  },
       //cambiar vistas
       cambioPage(num,item){
         if(num==0){
