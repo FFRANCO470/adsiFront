@@ -212,7 +212,11 @@
         items: [
           {action: 'mdi-sitemap',
           title: 'Almacen',
-          items: [{ title: 'Categorías',ruta: {path:'/categoria'}}, {title:'Articulos',ruta:{path:'/articulo'}}],
+          items: [
+            { title: 'Categorías',ruta: {path:'/categoria'}}, 
+            {title:'Articulos',ruta:{path:'/articulo'}},
+            {title:'Grafica',ruta:{path:'/grafica'}}
+          ],
           //active:true
           }
         ],

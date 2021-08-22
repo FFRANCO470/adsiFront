@@ -7,6 +7,7 @@ import {store} from './store/store.js'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 
+
 Vue.use(VueRouter);
 Vue.config.productionTip = false
 
@@ -28,6 +29,8 @@ new Vue({
   router,
   store,
   Swal,
+  
+  
 }).$mount('#app')
 
 // router.beforeEach((to, from, next) =>{

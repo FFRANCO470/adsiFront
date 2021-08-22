@@ -10,6 +10,7 @@ import listarProveedores from '../components/listarProveedores.vue';
 import listarClientes from '../components/listarClientes.vue';
 import consultarCompras from '../components/consultarCompras.vue';
 import consultarVentas from '../components/consultarVentas.vue';
+import grafica from '../components/grafica.vue';
 
 export const routes = [
     {path:'/compra',component: compras},
@@ -24,4 +25,5 @@ export const routes = [
     {path:'/home',component: home},
     {path:'/consultarCompras',component: consultarCompras},
     {path:'/consultarVentas',component: consultarVentas},
+    {path:'/grafica',component: grafica},
 ]
