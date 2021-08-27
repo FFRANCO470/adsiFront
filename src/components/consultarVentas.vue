@@ -1,7 +1,19 @@
 <template>
-    <div class="ex2">
-        <canvas id="myChart"></canvas>
-    </div>
+    <div>
+    <v-row>
+        <div class="form-group row  texto" style="margin-top:50px;margin-left:40%">
+            <label  class="col-form-label ">Ventas realizadas</label>
+        </div>
+    </v-row>
+
+    <v-row>
+        <v-card style="margin-top:60px; margin-left:5%;width:90%; height:90%">
+            <div class="ex2">
+                <canvas id="myChart"></canvas>
+            </div>
+        </v-card>
+    </v-row>
+</div>
 </template>
 
 <script>
@@ -11,7 +23,7 @@
         data(){
             return{
                 datos:[],
-                stock:[],
+                total:[],
             };
         },//data
         methods: {
@@ -19,42 +31,48 @@
                 let me = this;
                 let categoriaArray = [];
                 let header = { headers: { "token": this.$store.state.token } };
-                await axios.get("articulo",header)
+                await axios.get("venta",header)
                     .then(response =>{   
                         console.log(response);  
-                        categoriaArray = response.data.articulos;
+                        categoriaArray = response.data.venta;
                         categoriaArray.map(function(x){
-                            me.datos.push(x.nombre);
-                            me.stock.push(x.stock);
+                            var fecha = x.createAt.split("T");
+                            var fechaLimpia = fecha[0]
+                            me.datos.push(fechaLimpia);
+                            me.total.push(x.total);
                         });
 
                     })
                     
                 let ctx = document.getElementById('myChart');
                 const myChart = new Chart(ctx,{
-                    type:'bar',
+                    type:'line',
                     data:{
                         labels:me.datos,
                         datasets:[{
-                            label:'Articulos',
-                            data:me.stock,
+                            label:'Ventas',
+                            data:me.total,
                             backgroundColor:[
-                                'rgba(255,99,132,0.2)', 
+                                'rgba(99,189,108,0.2)', 
                             ],
                             borderColor:[
-                                'rgba(255,99,132,1)', 
+                                'rgba(99,189,108,1)', 
                             ],
                             borderWidth:1
                         }]
                     },
                     options:{
+                        animation:{
+                            animateScale:true
+                        },
                         scales:{
                             yAxes:[{
                                 ticks:{
                                     beginAtZero:true
                                 }
                             }]
-                        }
+                        },
+                        
                     }
                 })
                 console.log(myChart);
@@ -65,3 +83,11 @@
         },
     }
 </script>
+<style scoped>
+    .texto{
+        font-family: 'calibri';
+        color: #00000;
+        font-size: 50px;
+        text-align:left;
+    }
+</style>

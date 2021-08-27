@@ -1,60 +1,93 @@
 <template>
-<div id="app">
-  <v-app id="inspire">
-<!--marl-->
-    <v-data-table  :headers="headers" :items="desserts"  :items-per-page="5"  class="elevation-1" >
+    <div>
+    <v-row>
+        <div class="form-group row  texto" style="margin-top:50px;margin-left:40%">
+            <label  class="col-form-label ">Compras realizadas</label>
+        </div>
+    </v-row>
 
-      <template v-slot:item.protein="props">
-        <v-text-field  v-model="props.item.protein"  name="quantity"  outlined  @input="getdata"  type="number"></v-text-field>
-      </template>
-
-    </v-data-table>
-
-  </v-app>
+    <v-row>
+        <v-card style="margin-top:60px; margin-left:5%;width:90%; height:90%">
+            <div class="ex2">
+                <canvas id="myChart"></canvas>
+            </div>
+        </v-card>
+    </v-row>
 </div>
 </template>
 
 <script>
-export default {
-  data () {
-    return {
-      headers: [
-        {  text: 'Dessert (100g serving)', align: 'left', sortable: false, value: 'name', },
-        { text: 'Calories', value: 'calories' },
-        { text: 'Fat (g)', value: 'fat' },
-        { text: 'Carbs (g)', value: 'carbs' },
-        { text: 'Protein (g)', value: 'protein' },
-        { text: 'Iron (%)', value: 'iron' },
-      ],
-      desserts: [
-        {
-          name: '1',
-          calories: 159,
-          fat: 6.0,
-          carbs: 24,
-          protein: 4.0,
-          iron: '1%', },
-        {
-          name: '2',
-          calories: 159,
-          fat: 6.0,
-          carbs: 24,
-          protein: 4.0,
-          iron: '1%', },
-        {
-          name: '3',
-          calories: 159,
-          fat: 6.0,
-          carbs: 24,
-          protein: 4.0,
-          iron: '1%', },
-      ],
+    import axios from "axios";
+    import Chart from 'chart.js'
+    export default {
+        data(){
+            return{
+                datos:[],
+                total:[],
+            };
+        },//data
+        methods: {
+            async graficar(){
+                let me = this;
+                let categoriaArray = [];
+                let header = { headers: { "token": this.$store.state.token } };
+                await axios.get("compra",header)
+                    .then(response =>{   
+                        console.log(response);  
+                        categoriaArray = response.data.compra;
+                        categoriaArray.map(function(x){
+                            var fecha = x.createAt.split("T");
+                            var fechaLimpia = fecha[0]
+                            me.datos.push(fechaLimpia);
+                            me.total.push(x.total);
+                        });
+
+                    })
+                    
+                let ctx = document.getElementById('myChart');
+                const myChart = new Chart(ctx,{
+                    type:'line',
+                    data:{
+                        labels:me.datos,
+                        datasets:[{
+                            label:'Compras',
+                            data:me.total,
+                            backgroundColor:[
+                                'rgba(99,189,108,0.2)', 
+                            ],
+                            borderColor:[
+                                'rgba(99,189,108,1)', 
+                            ],
+                            borderWidth:1
+                        }]
+                    },
+                    options:{
+                        animation:{
+                            animateScale:true
+                        },
+                        scales:{
+                            yAxes:[{
+                                ticks:{
+                                    beginAtZero:true
+                                }
+                            }]
+                        },
+                        
+                    }
+                })
+                console.log(myChart);
+            }
+        },//methods
+        mounted() {
+            this.graficar();
+        },
     }
-  },
-  methods: {
-    getdata() {
-      console.log(this.desserts[0].protein);
-    }
-  },
-}
 </script>
+<style scoped>
+    .texto{
+        font-family: 'calibri';
+        color: #00000;
+        font-size: 50px;
+        text-align:left;
+    }
+</style>

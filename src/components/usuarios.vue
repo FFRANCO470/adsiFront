@@ -7,12 +7,12 @@
             <v-toolbar  flat >
               <v-toolbar-title>Usuarios</v-toolbar-title>
               <v-spacer></v-spacer>
-              <v-text-field  v-model="search" append-icon="mdi-magnify" label="Buscar" single-line hide-details ></v-text-field>
+              <v-text-field  v-model="search" append-icon="mdi-magnify" label="Buscar por nombre, email o rol" single-line hide-details ></v-text-field>
               <v-divider  class="mx-4"  inset  vertical  ></v-divider>
               <v-spacer></v-spacer>
               <v-dialog  v-model="dialog" max-width="700px"  >
                 <template v-slot:activator="{ on, attrs }">
-                  <v-btn depressed dark  class="mb-2"  v-bind="attrs" v-on="on">Añadir </v-btn>
+                  <v-btn depressed dark  class="mb-2"  v-bind="attrs" @click="nuevo()" >Añadir </v-btn>
                   <v-icon medium class="mr-4"  @click="crearPDF()"> mdi-download</v-icon>
                 </template>
                 <v-card>
@@ -37,15 +37,33 @@
             </v-toolbar>
           </template>
 
-          <template v-slot:[`item.actions`]="{ item }">
-            <v-icon small class="mr-2"  @click="editar(item)" >  mdi-pencil </v-icon>
-            <template v-if="item.estado">
-              <v-icon   small  class="mr-2"  @click="activarDesactivarItem(2,item)"  > mdi-check</v-icon>
-            </template>
-            <template v-else>
-              <v-icon  small  @click="activarDesactivarItem(1,item)" > mdi-block-helper}</v-icon>
-            </template>
+          <!--estado-->
+          <template v-slot:[`item.estado`]="{ item }">
+            <div v-if="item.estado">
+              <span class="black--text">Activo</span>
+            </div>
+            <div v-else>
+              <span class="red--text">Inactivo</span>
+            </div>
           </template>
+
+          <!--activar desactivar editar-->
+          <template v-slot:[`item.actions`]="{ item }">
+            <v-icon  small  class="mr-2"  @click="editar(item)" >  mdi-pencil</v-icon>
+            
+            <template v-if="item._id != $store.state.idUser">
+              <template v-if="item.estado">
+                <v-icon  small class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-check</v-icon>
+              </template>
+              <template v-else>
+                <v-icon  small  @click="activarDesactivarItem(1,item)" >  mdi-block-helper </v-icon>
+              </template>
+            </template>
+
+
+          </template>
+
+
         </v-data-table>
       </template>
     </v-container>
@@ -85,6 +103,7 @@ import 'jspdf-autotable'
         { text: 'Nombre', value: 'nombre' , class:'teal accent-4 white--text'},
         { text: 'Email', value: 'email' , class:'teal accent-4 white--text'},
         { text: 'Rol', value: 'rol', class:'teal accent-4 white--text' },
+        { text: 'Estado', value: 'estado', class:'teal accent-4 white--text' },
         { text: 'Actions', value: 'actions' , class:'teal accent-4 white--text',width:'10%', sortable: false }
       ],
       usuarios: [{ nombre:'',  email:'', estado:'', password:'', rol:''}],
@@ -103,7 +122,7 @@ import 'jspdf-autotable'
           icon: 'error',
           title: tata,
           showConfirmButton: false,
-          timer: 2000})
+          timer: 3000})
       },
       //traer usuarios
       obtenerUsuarios(){
@@ -127,9 +146,14 @@ import 'jspdf-autotable'
           }
         })
       },//obtenerUsuarios
+      nuevo(){
+        this.reset();
+        this.dialog=true;
+        this.bd=0;
+      },
       //limpiar formulario
       reset(){
-        this.editedItem.rol='null',
+        this.editedItem.rol='',
         this.editedItem.nombre=''
         this.editedItem.email=''
         this.editedItem.password=''
@@ -150,7 +174,12 @@ import 'jspdf-autotable'
           console.log('estoy guardando'+this.bd);
           let header = {headers:{"token" : this.$store.state.token}};
           const me = this;
-          axios.post('usuario',{
+          if(this.editedItem.nombre.trim()==='' || this.editedItem.email.trim()==='' || this.editedItem.rol.trim()==='' || this.editedItem.password.trim()==='' ){
+            this.msjcompra("Nombre, email, rol y contraseña son campos obligatorios");
+          }else if(this.editedItem.nombre.length>50 || this.editedItem.email.length>50 || this.editedItem.rol.length>50 || this.editedItem.password.length>50){
+            this.msjcompra("Un campo supero en numero maximo de caracteres");
+          }else{
+            axios.post('usuario',{
             nombre:this.editedItem.nombre,
             email:this.editedItem.email,
             rol:this.editedItem.rol,
@@ -176,6 +205,8 @@ import 'jspdf-autotable'
                 this.msjcompra(this.msgError);
               }
             })
+          }
+          
         }else{
           console.log('estoy enviando'+this.bd);
           let header = {headers:{"token" : this.$store.state.token}};
