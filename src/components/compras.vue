@@ -63,12 +63,12 @@
               </v-row>
               <v-row>
                 <v-col cols="4"><v-autocomplete v-model="editedItem.tipoComprobante"  :items="tiposComprobantaVenta"   label="Tipo Comprobante" ></v-autocomplete></v-col>
-                <v-col cols="4"> <v-text-field  v-model="editedItem.serieComprobante"  label="Serie comprobante"></v-text-field></v-col>
-                <v-col cols="4"><v-text-field  type="number" min="0" v-model="editedItem.numComprobante"  label="Numero comprobante"></v-text-field></v-col>
+                <v-col cols="4"> <v-text-field  v-model="editedItem.serieComprobante"  :rules="rulesSerieComprobante"  label="Serie comprobante"></v-text-field></v-col>
+                <v-col cols="4"><v-text-field  type="number" min="0" v-model="editedItem.numComprobante" :rules="rulesNumComprobante" label="Numero comprobante"></v-text-field></v-col>
               </v-row>
               <v-row>
                 <v-col cols="8"> <v-autocomplete  v-model="editedItem.persona" :items="proveedores"  label="Proveedor"  ></v-autocomplete> </v-col>
-                <v-col cols="4">  <v-text-field  type="number" min="0" v-model="editedItem.impuesto" default=0 label="Impuesto"></v-text-field></v-col>
+                <v-col cols="4">  <v-text-field  type="number" min="0" v-model="editedItem.impuesto"  default=0 label="Impuesto"></v-text-field></v-col>
               </v-row>
               <v-row>
                   <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Total parcial : {{totalComprado}}</span></div>        
@@ -200,6 +200,14 @@ import 'jspdf-autotable'
       search: '',
       muestra :0,
       msgError:'',
+      rulesSerieComprobante:[
+        value => !!value || 'Required.',
+        value => (value && value.length <= 7) || 'Max 7 caracteres',
+      ],
+      rulesNumComprobante:[
+        value => !!value || 'Required.',
+        value => (value && value.length <= 10) || 'Max 10 caracteres',
+      ],
       columnas: [
         { text: 'Fecha', value: 'createAt',class:'teal accent-4 white--text' },
         { text: 'Vendedor', value: 'usuario.nombre' ,class:'teal accent-4 white--text',width:'10%'},
@@ -660,38 +668,47 @@ import 'jspdf-autotable'
       guardar(user,person,tipo,serie,num,imp,total,deta){
         console.log('estoy guardando');
         let header = {headers:{"token" : this.$store.state.token}};
-        axios.post('compra',{
-          usuario:user,
-          persona:person,
-          tipoComprobante:tipo,
-          serieComprobante:serie,
-          numComprobante:num,
-          impuesto:imp,
-          total:total,
-          detalles:deta
-          },header)
-            .then((response)=>{
-              console.log('se hizo la compra');
-              console.log(response);
-              this.obtenerCompras();
-              this.obtenerPersonas();
-              this.obtenerArtirticulos();
-              this.reset();
-              this.listo();
-            })
-            .catch((error)=>{
-                console.log(error.response);
-                if(!error.response.data.msg){
+
+        if(user.trim()=='' || person.trim()=='' || tipo.trim()=='' || serie.trim()=='' || num.trim()==''  ){
+          this.msjcompra("Completar todos los campos");
+        }else if(serie.length>7 || num.length>10){
+          this.msjcompra("Serie o numero de comprobante excedieron los caracteres");
+        }else{
+          axios.post('compra',{
+            usuario:user,
+            persona:person,
+            tipoComprobante:tipo,
+            serieComprobante:serie,
+            numComprobante:num,
+            impuesto:imp,
+            total:total,
+            detalles:deta
+            },header)
+              .then((response)=>{
+                console.log('se hizo la compra');
+                console.log(response);
+                this.obtenerCompras();
+                this.obtenerPersonas();
+                this.obtenerArtirticulos();
+                this.reset();
+                this.listo();
+              })
+              .catch((error)=>{
                   console.log(error.response);
-                  this.msgError = error.response.data.errors[0].msg;
-                  this.msjcompra(this.msgError);
-                }else{
-                  this.msgError = error.response.data.msg;
-                  console.log(error.response.data.msg);
-                  this.msgError =error.response.data.msg;
-                  this.msjcompra(this.msgError);
-                }
-            })
+                  if(!error.response.data.msg){
+                    console.log(error.response);
+                    this.msgError = error.response.data.errors[0].msg;
+                    this.msjcompra(this.msgError);
+                  }else{
+                    this.msgError = error.response.data.msg;
+                    console.log(error.response.data.msg);
+                    this.msgError =error.response.data.msg;
+                    this.msjcompra(this.msgError);
+                  }
+              })
+        }
+
+        
       },//guardar
       //limpia la ventanilla para generarfactura
       reset(){

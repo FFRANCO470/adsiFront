@@ -651,37 +651,46 @@ import 'jspdf-autotable'
       guardar(user,person,tipo,serie,num,imp,total,deta){
         console.log('estoy guardando'+this.bd);
         let header = {headers:{"token" : this.$store.state.token}};
-        axios.post('venta',{
-          usuario:user,
-          persona:person,
-          tipoComprobante:tipo,
-          serieComprobante:serie,
-          numComprobante:num,
-          impuesto:imp,
-          total:total,
-          detalles:deta
-          },header)
-            .then((response)=>{
-              console.log(response);
-              this.obtenerVenta();
-              this. obtenerPersonas();
-              this.obtenerArtirticulos();
-              this.reset();
-              this.listo();
-            })
-            .catch((error)=>{
-                console.log(error.response);
-                if(!error.response.data.msg){
-                console.log(error.response);
-                this.msgError = error.response.data.errors[0].msg;
-                this.msjcompra(this.msgError);
-              }else{
-                this.msgError = error.response.data.msg;
-                console.log(error.response.data.msg);
-                this.msgError =error.response.data.msg;
-                this.msjcompra(this.msgError);
-              }
-            })
+
+        if(user.trim()=='' || person.trim()=='' || tipo.trim()=='' || serie.trim()=='' || num.trim()==''  ){
+          this.msjcompra("Completar todos los campos");
+        }else if(serie.length>7 || num.length>10){
+          this.msjcompra("Serie o numero de comprobante excedieron los caracteres");
+        }else{
+          axios.post('venta',{
+            usuario:user,
+            persona:person,
+            tipoComprobante:tipo,
+            serieComprobante:serie,
+            numComprobante:num,
+            impuesto:imp,
+            total:total,
+            detalles:deta
+            },header)
+              .then((response)=>{
+                console.log(response);
+                this.obtenerVenta();
+                this. obtenerPersonas();
+                this.obtenerArtirticulos();
+                this.reset();
+                this.listo();
+              })
+              .catch((error)=>{
+                  console.log(error.response);
+                  if(!error.response.data.msg){
+                  console.log(error.response);
+                  this.msgError = error.response.data.errors[0].msg;
+                  this.msjcompra(this.msgError);
+                }else{
+                  this.msgError = error.response.data.msg;
+                  console.log(error.response.data.msg);
+                  this.msgError =error.response.data.msg;
+                  this.msjcompra(this.msgError);
+                }
+              })
+        }
+
+        
       },//guardar
       //limpia la ventanilla para generarfactura
       reset(){

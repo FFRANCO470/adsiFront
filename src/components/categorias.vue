@@ -77,7 +77,7 @@ import Swal from 'sweetalert2'
       bd:0,//agregar o editar
       rulesNombre: [
         value => !!value || 'Required.',
-        value => (value && value.length <= 50) || 'Max 3 caracteres',
+        value => (value && value.length <= 50) || 'Max 50 caracteres',
       ],
       rulesDescripcion:[
         value => (value && value.length <= 255) || 'Max 255 caracteres'
