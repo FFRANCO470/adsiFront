@@ -9,11 +9,18 @@
             <v-toolbar flat >
               <v-toolbar-title>Ventas: {{totalVentas}}</v-toolbar-title>
               <v-spacer></v-spacer>
-              <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
+              <v-text-field   v-model="search"   
+                              append-icon="mdi-magnify" 
+                              style="margin-left:50px;width:40%" 
+                              label="Buscar por fecha, vendedor, cliente, tipo, serie o numero de comprovante"
+                              single-line hide-details>
+              </v-text-field>
               <v-divider  class="mx-4"   inset  vertical ></v-divider>
               <!--Boton descargar y cambio de vista apara agregar venta-->
               <v-spacer></v-spacer>
-               <v-icon  medium   class="mr-4" @click="crearPDF()"  >mdi-download</v-icon>
+              <v-btn  depressed dark class="mb-2" style="margin-right:10px"    @click="crearPDF()" >   
+                    Descargar PDF <v-icon  medium class="mr-4" >mdi-download </v-icon> 
+                  </v-btn>
               <v-btn depressed dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
             </v-toolbar>
           </template>
@@ -123,7 +130,10 @@
             <v-row>
               <v-btn   @click="cambioPage(0,false)"  color="Error"   dark  class="mb-2" >Volver</v-btn>
               <v-spacer></v-spacer>
-              <v-icon  medium   class="mr-4" @click="crearPDFVenta()"  >mdi-download</v-icon>
+              <v-btn  depressed dark class="mb-2" style="margin-right:10px"   @click="crearPDFVenta()" >   
+                    Descargar PDF <v-icon  medium class="mr-4" >mdi-download </v-icon> 
+              </v-btn>
+              
             </v-row>
           </v-container>
           <template>
@@ -273,8 +283,7 @@ import 'jspdf-autotable'
         axios.get("venta",header)
         .then(response =>{
           console.log(response.data);
-          this.ventas = response.data.venta
-          console.log(this.ventas);
+          this.limpiarFechas(response.data.venta)
         })
         .catch((error) =>{
           console.log(error.response);
@@ -290,6 +299,28 @@ import 'jspdf-autotable'
           }
         })
       },//obtenerVenta
+      limpiarFechas(comprasTodas){
+        let pepe =[];
+        comprasTodas.map(function(x){
+          var fecha = x.createAt.split("T");
+          var fechaLimpia = fecha[0]
+          pepe.push({
+            _id:x._id,
+            createAt:fechaLimpia,
+            detalles:x.detalles,
+            estado:x.estado,
+            impuesto:x.impuesto,
+            numComprobante:x.numComprobante,
+            persona:x.persona,
+            serieComprobante:x.serieComprobante,
+            tipoComprobante:x.tipoComprobante,
+            total:x.total,
+            usuario:x.usuario
+            
+          })
+        });
+        this.ventas=pepe        
+      },
       
       //activar desactivar venta
       activarDesactivarItem (accion , item) {
@@ -391,7 +422,9 @@ import 'jspdf-autotable'
         axios.get(`venta/${id}`,header)
           .then(response =>{
             console.log(response);
-            this.ventaConDetalleFecha=response.data.venta.createAt
+            let fecha = response.data.venta.createAt.split("T")
+            let fechaLimpia = fecha[0]
+            this.ventaConDetalleFecha=fechaLimpia
             this.ventaConDetalleEstado=response.data.venta.estado
             this.ventaConDetalleCliente=response.data.venta.persona
             this.ventaConDetalleVendedor=response.data.venta.usuario

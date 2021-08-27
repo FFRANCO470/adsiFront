@@ -1,19 +1,26 @@
 <template>
   <v-app>
+
     <v-container fluid>
-      <template>
-        <!--tabla se muestra en la vista inicial-->
-        <v-data-table v-if="muestra == 0" class="ancho-tabla elevation-15" :headers="columnas" :items="compras" :search="search" >
+      <!--tabla que se muestar al ingresar a compras-->
+      <template v-if="muestra == 0">
+
+        <v-data-table  class="ancho-tabla elevation-15" :headers="columnas" :items="compras" :search="search" >
           <template v-slot:top>
             <!--parte alta de la tabla-->
             <v-toolbar flat >
               <v-toolbar-title>Compras: {{totalCompras}}</v-toolbar-title>
               <v-spacer></v-spacer>
-              <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
+              <v-text-field   v-model="search"   
+                              append-icon="mdi-magnify" 
+                              style="margin-left:50px;width:40%" 
+                              label="Buscar por fecha, vendedor, cliente, tipo, serie o numero de comprovante"
+                              single-line hide-details>
+              </v-text-field>
               <v-divider  class="mx-4"   inset  vertical ></v-divider>
               <!--Boton descargar y cambio de vista apara agregar venta-->
               <v-spacer></v-spacer>
-                <v-btn  depressed dark class="mb-2" style="margin-right:10px" v-bind="attrs"   @click="crearPDF()" >   
+                <v-btn  depressed dark class="mb-2" style="margin-right:10px"   @click="crearPDF()" >   
                     Descargar PDF <v-icon  medium class="mr-4" >mdi-download </v-icon> 
                 </v-btn>
               <v-btn depressed dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
@@ -40,16 +47,20 @@
           </template>
         </v-data-table>
       </template>
-      <!--cambiar de vista para generar factura-->
-      <template>
-        <div v-if="muestra==1" class="container-fluid pa-4 white grid-list-sm">
+
+
+      <!--vista para generar factura-->
+      <template v-if="muestra==1" >
+
+
+        <div class="container-fluid pa-4 white grid-list-sm">
+            <!--datos de la compra-->
             <v-container fluid>
               <v-row> 
                 <v-btn   @click="guardar2()"  depressed dark   class="mb-2"> Generar compra</v-btn>
                 <v-spacer></v-spacer>
                 <v-btn   @click="cambioPage(0,false)"  color="red" dark class="mb-2"> Cancelar</v-btn>
               </v-row>
-              <!--formulario-->
               <v-row>
                 <v-col cols="4"><v-autocomplete v-model="editedItem.tipoComprobante"  :items="tiposComprobantaVenta"   label="Tipo Comprobante" ></v-autocomplete></v-col>
                 <v-col cols="4"> <v-text-field  v-model="editedItem.serieComprobante"  label="Serie comprobante"></v-text-field></v-col>
@@ -67,12 +78,11 @@
               </v-row>              
               <v-row>
                   <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Total neto : {{totalComprado+TotalFinalImpuesto}}</span></div>        
-              </v-row>              
-                
-            </v-container>   
-                     
+              </v-row>       
+            </v-container>            
         </div>
-         <div v-if="muestra==1" style="margin-top:10px; margin-left:40px; margin-right:7%" class="container-fluid">
+        <!--tablas-->            
+        <div  style="margin-top:10px; margin-left:40px; margin-right:7%" class="container-fluid">
               <v-row>  
                 <!--tabla con todos los articulos-->            
                   <v-col>
@@ -119,14 +129,17 @@
                 </v-row>   
               </div>
       </template>
-      <template>
-        <!--para mostar a detalle la factura-->
-        <div v-if="muestra==2" class="container pa-4 white grid-list-sm">
+
+      <!--para mostar a detalle la factura-->
+      <template v-if="muestra==2">
+        <div  class="container pa-4 white grid-list-sm">
           <v-container>
             <v-row>
               <v-btn   @click="cambioPage(0,false)"  color="Error"   dark  class="mb-2" >Volver</v-btn>
               <v-spacer></v-spacer>
-              <v-icon  medium   class="mr-4" @click="crearPDFVenta()"  >mdi-download</v-icon>
+              <v-btn  depressed dark class="mb-2" style="margin-right:10px"  @click="crearPDFVenta()" >   
+                    Descargar PDF <v-icon  medium class="mr-4" >mdi-download </v-icon> 
+              </v-btn>
             </v-row>
           </v-container>
           <template>
@@ -200,10 +213,7 @@ import 'jspdf-autotable'
         { text: 'Acciones', value: 'actions', sortable: false,class:'teal accent-4 white--text',width:'10%' }
       ],
       compras: [
-        {
-        usuario:'', persona:'',  tipoComprobante:'', serieComprobante:'',
-        numComprobante:'', impuesto:0,total:0, detalles:'', createAt:'',
-        }
+        
       ],
       compraConDetalleFecha:'',
       compraConDetalleEstado:'',
@@ -281,8 +291,7 @@ import 'jspdf-autotable'
         axios.get("compra",header)
         .then(response =>{
           console.log(response.data);
-          this.compras = response.data.compra
-          console.log(this.compras);
+          this.limpiarFechas(response.data.compra)
         })
         .catch((error) =>{
           console.log(error.response);
@@ -298,6 +307,28 @@ import 'jspdf-autotable'
           }
         })
       },//obtenerVenta
+      limpiarFechas(comprasTodas){
+        let pepe =[];
+        comprasTodas.map(function(x){
+          var fecha = x.createAt.split("T");
+          var fechaLimpia = fecha[0]
+          pepe.push({
+            _id:x._id,
+            createAt:fechaLimpia,
+            detalles:x.detalles,
+            estado:x.estado,
+            impuesto:x.impuesto,
+            numComprobante:x.numComprobante,
+            persona:x.persona,
+            serieComprobante:x.serieComprobante,
+            tipoComprobante:x.tipoComprobante,
+            total:x.total,
+            usuario:x.usuario
+            
+          })
+        });
+        this.compras=pepe        
+      },
       
       //activar desactivar venta
       activarDesactivarItem (accion , item) {
@@ -399,7 +430,9 @@ import 'jspdf-autotable'
         axios.get(`compra/${id}`,header)
           .then(response =>{
             console.log(response);
-            this.compraConDetalleFecha=response.data.compra.createAt
+            let fecha = response.data.compra.createAt.split("T")
+            let fechaLimpia = fecha[0]
+            this.compraConDetalleFecha=fechaLimpia
             this.compraConDetalleEstado=response.data.compra.estado
             this.compraConDetalleProveedor=response.data.compra.persona
             this.compraConDetalleVendedor=response.data.compra.usuario
