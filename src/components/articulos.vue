@@ -8,22 +8,29 @@
             <v-toolbar  flat >
               <v-toolbar-title>Articulos</v-toolbar-title>
               <!--barra para buscar-->
-              <v-spacer></v-spacer>
-              <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
+              <v-text-field   v-model="search"   
+                              append-icon="mdi-magnify" 
+                              style="margin-left:50px;width:30%" 
+                              label="Buscar por categoría, código o nombre"
+                              single-line hide-details>
+              </v-text-field>
+              
               <v-divider  class="mx-4"  inset  vertical ></v-divider>
               <!--Botones descargar anadir-->
               <v-spacer></v-spacer>
               <v-dialog  v-model="dialog" width="700px" >
                 <template v-slot:activator="{ on, attrs }">            
-                  <v-btn  depressed dark class="mb-2"  v-bind="attrs" v-on="on" > Añadir </v-btn>
-                  <v-icon  medium class="mr-4" @click="crearPDF()">  mdi-download  </v-icon>
+                  <v-btn  depressed dark class="mb-2"  v-bind="attrs" @click="nuevo()" > Añadir </v-btn>
+                  <v-btn  depressed dark class="mb-2" style="margin-right:10px" v-bind="attrs"   @click="crearPDF()" >   
+                    Descargar PDF <v-icon  medium class="mr-4" >mdi-download </v-icon> 
+                  </v-btn>
                 </template>
                 <!--Formulario-->
                 <v-card>
                   <v-card-title><span class="text-h5">Articulos</span></v-card-title>
                   <v-card-text>
                     <v-form  ref="form" lazy-validation >
-                      <v-row > <v-col>  <v-select  v-model="editedItem.categoria"  :items="categorias" label="Categoria" ></v-select>  </v-col> </v-row>
+                      <v-row > <v-col>  <v-select  v-model="editedItem.categoria"  :items="categorias" :rules="rulesCategoria"  label="Categoria" ></v-select>  </v-col> </v-row>
                       <v-row>
                         <v-col > <v-text-field  v-model="editedItem.codigo" :counter="64" label="Codigo" :rules="rulesCodigo" required  ></v-text-field>  </v-col>
                         <v-col > <v-text-field  v-model="editedItem.nombre"   :counter="50"  label="Nombre" :rules="rulesNombre" required ></v-text-field> </v-col>
@@ -44,6 +51,15 @@
                 </v-card>
               </v-dialog>
             </v-toolbar>
+          </template>
+          <!--estado-->
+          <template v-slot:[`item.estado`]="{ item }">
+            <div v-if="item.estado">
+              <span class="black--text">Activo</span>
+            </div>
+            <div v-else>
+              <span class="red--text">Inactivo</span>
+            </div>
           </template>
           <!--botones para editar activar desactivar-->
           <template v-slot:[`item.actions`]="{ item }">
@@ -74,6 +90,9 @@ import 'jspdf-autotable'
       msgError:'',
       bd:0,
       dialog: false,
+      rulesCategoria: [
+        value => !!value || 'Required.',
+      ],
       rulesCodigo: [
         value => !!value || 'Required.',
         value => (value && value.length <= 60) || 'Max 60 caracteres',
@@ -84,13 +103,14 @@ import 'jspdf-autotable'
       ],
       rulesDescripcion:[ value => (value.length <= 255) || 'Max 255 caracteres' ],
       columnas: [
-        { text: 'Categoria', value: 'categoria.nombre', class:'teal accent-4 white--text',width:'13%'},
-        { text: 'Codigo', value: 'codigo' , class:'teal accent-4 white--text',width:'11%' },
+        { text: 'Categoria', value: 'categoria.nombre', class:'teal accent-4 white--text'},
+        { text: 'Codigo', value: 'codigo' , class:'teal accent-4 white--text' },
         { text: 'Nombre', value: 'nombre', class:'teal accent-4 white--text' },
-        { text: 'Descripcion', value: 'descripcion', class:'teal accent-4 white--text' ,width:'30%' },
+        { text: 'Descripcion', value: 'descripcion', class:'teal accent-4 white--text' ,width:'20%' },
         { text: 'Precio', value: 'precio',  class:'teal accent-4 white--text',width:'9%'},
         { text: 'Costo', value: 'costo' , class:'teal accent-4 white--text',width:'9%'},
         { text: 'stock', value: 'stock', class:'teal accent-4 white--text' ,width:'9%'},
+        { text: 'Estado', value: 'estado', class:'teal accent-4 white--text'},
         { text: 'Actions', value: 'actions', class:'teal accent-4 white--text',width:'10%',sortable: false   }
       ],
       articulos: [ {  codigo:'',  precio:'', costo:'', stock:'',  nombre:'',  estado:'',  descripcion:''}],//filas de la tabla
@@ -126,6 +146,11 @@ import 'jspdf-autotable'
             }
           })
       },//obtenerArticulos
+      nuevo(){
+        this.reset()
+        this.dialog=true;
+        this.bd=0;
+      },
       //traer categorias para colocarlas en la lista desplegable
       selectCategoria() {
         let me = this;
@@ -205,6 +230,7 @@ import 'jspdf-autotable'
       },//selectCategoria
       //limpiar formulario despues de agregar
       reset(){
+        this.editedItem.categoria=''
         this.editedItem.codigo=''
         this.editedItem.nombre=''
         this.editedItem.precio=''
@@ -231,36 +257,48 @@ import 'jspdf-autotable'
           console.log('estoy guardando'+this.bd);
           let header = {headers:{"token" : this.$store.state.token}};
           const me = this;
-          axios.post('articulo',{
-            categoria:this.editedItem.categoria,
-            codigo:this.editedItem.codigo,
-            nombre:this.editedItem.nombre,
-            descripcion:this.editedItem.descripcion,
-            precio:this.editedItem.precio,
-            costo:this.editedItem.costo,
-            stock:parseFloat(this.editedItem.stock)
-            },
-            header
-            )
-            .then((response)=>{
-              console.log(response);
-              me.obtenerArticulos();
-              me.reset();
-              this.dialog=false;
-            })
-            .catch((error)=>{
-              console.log(error.response);
-              if(!error.response.data.msg){
+          if(this.editedItem.categoria.trim()==='' || this.editedItem.codigo.trim()==='' || this.editedItem.nombre.trim()==='' ){
+            this.msgError = "Categoria, Codigo y Nombre obligatorias"
+            this.msjcompra(this.msgError);
+          }else if (this.editedItem.codigo.length>60 ){
+            this.msgError = "Codigo supero los 60 caracteres"
+            this.msjcompra(this.msgError);
+          }else if (this.editedItem.nombre.length>50 ){
+            this.msgError = "Nombre supero los 50 caracteres"
+            this.msjcompra(this.msgError);
+          }else{
+            axios.post('articulo',{
+              categoria:this.editedItem.categoria,
+              codigo:this.editedItem.codigo,
+              nombre:this.editedItem.nombre,
+              descripcion:this.editedItem.descripcion,
+              precio:this.editedItem.precio,
+              costo:this.editedItem.costo,
+              stock:parseFloat(this.editedItem.stock)
+              },
+              header
+              )
+              .then((response)=>{
+                console.log(response);
+                me.obtenerArticulos();
+                me.reset();
+                this.dialog=false;
+              })
+              .catch((error)=>{
                 console.log(error.response);
-                this.msgError = error.response.data.errors[0].msg;
-                this.msjcompra(this.msgError);
-              }else{
-                this.msgError = error.response.data.msg;
-                console.log(error.response.data.msg);
-                this.msgError =error.response.data.msg;
-                this.msjcompra(this.msgError);
-              }
-            })
+                if(!error.response.data.msg){
+                  console.log(error.response);
+                  this.msgError = error.response.data.errors[0].msg;
+                  this.msjcompra(this.msgError);
+                }else{
+                  this.msgError = error.response.data.msg;
+                  console.log(error.response.data.msg);
+                  this.msgError =error.response.data.msg;
+                  this.msjcompra(this.msgError);
+                }
+              })
+          }
+          
         }else{
           console.log('estoy enviando'+this.bd);
           let header = {headers:{"token" : this.$store.state.token}};

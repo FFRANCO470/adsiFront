@@ -8,7 +8,9 @@
               <v-text-field v-model="pass" id="caja" class="form-input"  label="Contraseña" color="#1DE9B6" required  :rules="passRules" :type=" mostrarContraseña ? 'text' : 'password'"
                       prepend-icon="mdi-lock"
                       :append-icon="mostrarContraseña ? 'mdi-eye' : 'mdi-eye-off'"
-                      @click:append="mostrarContraseña =! mostrarContraseña"/>
+                      @click:append="mostrarContraseña =! mostrarContraseña"
+                      v-on:keyup.enter="login()"
+              />
             </v-card-text>  
             <v-divider></v-divider>
             <v-card-actions >
@@ -74,6 +76,7 @@ export default {
               this.$store.dispatch("setToken", response.data.token);
               this.$store.dispatch("setRol", response.data.usuario.rol);
               this.$store.dispatch("setIdUser", response.data.usuario._id);
+              this.$store.dispatch("setName", response.data.usuario.nombre);
               this.$router.push("/home");
               console.log('token' + response.data.token);
               return console.log(response);

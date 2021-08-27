@@ -18,6 +18,9 @@ export const store = new Vuex.Store({
         },
         setIdUser(state,value){
             state.idUser = value
+        },
+        setName(state,value){
+            state.name = value
         }
     },
     actions:{
@@ -29,6 +32,9 @@ export const store = new Vuex.Store({
         },
         setIdUser(context,value){
             context.commit("setIdUser",value)
+        },
+        setName(context,value){
+            context.commit("setName",value)
         }
     }
 })

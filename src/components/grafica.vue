@@ -1,7 +1,19 @@
 <template>
-    <div class="ex2">
-        <canvas id="myChart"></canvas>
-    </div>
+    <div>
+    <v-row>
+        <div class="form-group row  texto" style="margin-top:50px;margin-left:40%">
+            <label  class="col-form-label ">Cantidad de articulos</label>
+        </div>
+    </v-row>
+
+    <v-row>
+        <v-card style="margin-top:60px; margin-left:5%;width:90%; height:90%">
+            <div class="ex2">
+                <canvas id="myChart"></canvas>
+            </div>
+        </v-card>
+    </v-row>
+</div>
 </template>
 
 <script>
@@ -58,13 +70,17 @@
                         }]
                     },
                     options:{
+                        animation:{
+                            animateScale:true
+                        },
                         scales:{
                             yAxes:[{
                                 ticks:{
                                     beginAtZero:true
                                 }
                             }]
-                        }
+                        },
+                        
                     }
                 })
                 console.log(myChart);
@@ -75,3 +91,11 @@
         },
     }
 </script>
+<style scoped>
+    .texto{
+        font-family: 'calibri';
+        color: #00000;
+        font-size: 50px;
+        text-align:left;
+    }
+</style>

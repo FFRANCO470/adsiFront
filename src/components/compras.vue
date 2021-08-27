@@ -13,9 +13,20 @@
               <v-divider  class="mx-4"   inset  vertical ></v-divider>
               <!--Boton descargar y cambio de vista apara agregar venta-->
               <v-spacer></v-spacer>
-               <v-icon  medium   class="mr-4" @click="crearPDF()"  >mdi-download</v-icon>
+                <v-btn  depressed dark class="mb-2" style="margin-right:10px" v-bind="attrs"   @click="crearPDF()" >   
+                    Descargar PDF <v-icon  medium class="mr-4" >mdi-download </v-icon> 
+                </v-btn>
               <v-btn depressed dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
             </v-toolbar>
+          </template>
+          <!--estado-->
+          <template v-slot:[`item.estado`]="{ item }">
+            <div v-if="item.estado">
+              <span class="black--text">Activo</span>
+            </div>
+            <div v-else>
+              <span class="red--text">Inactivo</span>
+            </div>
           </template>
           <!--opciones sober las compras-->
           <template v-slot:item.actions="{ item }">
@@ -31,7 +42,7 @@
       </template>
       <!--cambiar de vista para generar factura-->
       <template>
-        <div v-if="muestra==1" class="container pa-4 white grid-list-sm">
+        <div v-if="muestra==1" class="container-fluid pa-4 white grid-list-sm">
             <v-container fluid>
               <v-row> 
                 <v-btn   @click="guardar2()"  depressed dark   class="mb-2"> Generar compra</v-btn>
@@ -57,50 +68,56 @@
               <v-row>
                   <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Total neto : {{totalComprado+TotalFinalImpuesto}}</span></div>        
               </v-row>              
-              <v-row>  
-              <!--tabla con todos los articulos-->            
-                <v-col>
-                  <v-data-table class="ancho-tabla elevation-15"  :headers="mostradorArticulosTitle" :items="mostradorArticulos" :search="search" >
-                    <template v-slot:top>
-                      <v-toolbar flat >
-                        <v-spacer></v-spacer>
-                        <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
-                        <v-divider  class="mx-4"   inset  vertical ></v-divider>
-                      </v-toolbar>
-                    </template>
-                    <!--opcion para agregar al array para vender-->
-                    <template  v-slot:item.actions="{ item }">
-                      <v-icon  small  class="mr-2" @click="facturar(item)" >mdi-cart </v-icon>
-                    </template>
-                  </v-data-table>  
-                </v-col>
-                <!--tabla con los articulos vendidos-->
-                <v-col>
-                  <v-data-table class="ancho-tabla elevation-15" :headers="facturaArticulosTitle" :items="facturaArticulos"   >
-                    <template v-slot:top>
-                      <v-toolbar flat >
-                        <v-spacer></v-spacer>
-                        <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
-                        <v-divider  class="mx-4"   inset  vertical ></v-divider>
-                      </v-toolbar>
-                    </template>
-                    <!--modificar las cantidades-->
-                    <template  v-slot:item.cantidad="props">
-                      <v-text-field  v-model="props.item.cantidad"  min=0 name="quantity"  outlined type="number"></v-text-field>
-                    </template>
-
-                    <template v-slot:[`item.subtotal`]="{ item }">
-                      {{item.costo*item.cantidad}}
-                    </template>
-                    <!--opcion para quitar el articulo del array de venta-->
-                    <template v-slot:[`item.actions`]="{ item }">
-                      <v-icon  small  class="mr-2" @click="desfacturar(item)" >mdi-delete </v-icon>
-                    </template>
-                  </v-data-table> 
-                </v-col>  
-              </v-row>  
-            </v-container>                
+                
+            </v-container>   
+                     
         </div>
+         <div v-if="muestra==1" style="margin-top:10px; margin-left:40px; margin-right:7%" class="container-fluid">
+              <v-row>  
+                <!--tabla con todos los articulos-->            
+                  <v-col>
+                    <v-data-table class="ancho-tabla elevation-15"  :headers="mostradorArticulosTitle" :items="mostradorArticulos" :search="search" >
+                      <template v-slot:top>
+                        <v-toolbar flat >
+                          <v-toolbar-title>Todos</v-toolbar-title>
+                          <v-spacer></v-spacer>
+                          <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
+                          <v-divider  class="mx-4"   inset  vertical ></v-divider>
+                        </v-toolbar>
+                      </template>
+                      <!--opcion para agregar al array para vender-->
+                      <template  v-slot:item.actions="{ item }">
+                        <v-icon  small  class="mr-2" @click="facturar(item)" >mdi-cart </v-icon>
+                      </template>
+                    </v-data-table>  
+                  </v-col>
+                  <!--tabla con los articulos vendidos-->
+                  <v-col>
+                    <v-data-table class="ancho-tabla elevation-15" :headers="facturaArticulosTitle" :items="facturaArticulos"   >
+                      <template v-slot:top>
+                        <v-toolbar flat >
+                          <v-toolbar-title>Comprados</v-toolbar-title>
+                          <v-spacer></v-spacer>
+                          <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
+                          <v-divider  class="mx-4"   inset  vertical ></v-divider>
+                        </v-toolbar>
+                      </template>
+                      <!--modificar las cantidades-->
+                      <template  v-slot:item.cantidad="props">
+                        <v-text-field  v-model="props.item.cantidad"  min=0 name="quantity"  outlined type="number"></v-text-field>
+                      </template>
+
+                      <template v-slot:[`item.subtotal`]="{ item }">
+                        {{item.costo*item.cantidad}}
+                      </template>
+                      <!--opcion para quitar el articulo del array de venta-->
+                      <template v-slot:[`item.actions`]="{ item }">
+                        <v-icon  small  class="mr-2" @click="desfacturar(item)" >mdi-delete </v-icon>
+                      </template>
+                    </v-data-table> 
+                  </v-col>  
+                </v-row>   
+              </div>
       </template>
       <template>
         <!--para mostar a detalle la factura-->
@@ -151,6 +168,9 @@
         </div>
       </template>
     </v-container>
+
+
+
   </v-app>
 </template>
 
@@ -176,6 +196,7 @@ import 'jspdf-autotable'
         { text: 'Número Comprobante', value: 'numComprobante',class:'teal accent-4 white--text',width:'10%' },
         { text: 'Impuesto', value: 'impuesto' ,class:'teal accent-4 white--text',width:'10%'},
         { text: 'Total', value: 'total',class:'teal accent-4 white--text',width:'10%' },
+        { text: 'Estado', value: 'estado',class:'teal accent-4 white--text',width:'10%' },
         { text: 'Acciones', value: 'actions', sortable: false,class:'teal accent-4 white--text',width:'10%' }
       ],
       compras: [
@@ -221,11 +242,11 @@ import 'jspdf-autotable'
       mostradorArticulos:[{_id:'',codigo:'',nombre:'',costo:0,cantidad:0}],
 
       facturaArticulosTitle:[
-        {text:'Nombre',value:'nombre',class:'teal accent-4 white--text',sortable: false},
-        {text:'Cantidad',value:'cantidad',class:'teal accent-4 white--text',sortable: false},
-        {text:'Costo',value:'costo',class:'teal accent-4 white--text',sortable: false},
-        {text:'Sub total',value:'subtotal',class:'teal accent-4 white--text',sortable: false},
-        {text:'Eliminar',value:'actions',class:'teal accent-4 white--text',sortable: false}
+        {text:'Nombre',value:'nombre',class:'black accent-4 white--text',sortable: false},
+        {text:'Cantidad',value:'cantidad',class:'black accent-4 white--text',sortable: false},
+        {text:'Costo',value:'costo',class:'black accent-4 white--text',sortable: false},
+        {text:'Sub total',value:'subtotal',class:'black accent-4 white--text',sortable: false},
+        {text:'Eliminar',value:'actions',class:'black accent-4 white--text',sortable: false}
       ],
       facturaArticulos:[  ],
       editedIndex: -1,
@@ -659,13 +680,14 @@ import 'jspdf-autotable'
       },
       totalComprado(){
           return this.facturaArticulos.reduce((suma,articulo)=>{
-            return suma + (parseInt(articulo.cantidad)*articulo.costo)
+            return suma + (parseFloat(articulo.cantidad)*articulo.costo)
           },0)
       },
       TotalFinalImpuesto(){
         if(!this.editedItem.impuesto)return 0
         var totalImpues =this.totalComprado*this.editedItem.impuesto/100 
-        return totalImpues.toFixed(2)
+        var mandar = parseFloat(totalImpues.toFixed(2))
+        return mandar
       },
     }
   }

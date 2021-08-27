@@ -17,6 +17,15 @@
               <v-btn depressed dark  class="mb-2"    @click="cambioPage(1,false)" >Añadir</v-btn>
             </v-toolbar>
           </template>
+          <!--estado-->
+          <template v-slot:[`item.estado`]="{ item }">
+            <div v-if="item.estado">
+              <span class="black--text">Activo</span>
+            </div>
+            <div v-else>
+              <span class="red--text">Inactivo</span>
+            </div>
+          </template>
           <!--opciones sober las ventas-->
           <template v-slot:item.actions="{ item }">
             <v-icon  small  class="mr-2" @click="cambioPage(2,item)" >mdi-clipboard-outline </v-icon>
@@ -31,7 +40,7 @@
       </template>
       <!--cambiar de vista para generar factura-->
       <template>
-        <div v-if="muestra==1" class="container pa-4 white grid-list-sm">
+        <div v-if="muestra==1" class="container-fluid pa-4 white grid-list-sm">
             <v-container fluid>
               <v-row> 
                 <v-btn   @click="guardar2()"  depressed dark   class="mb-2"> Generar venta</v-btn>
@@ -57,12 +66,17 @@
               <v-row>
                   <div  style="margin: 30px 50px 10px 20px;"><span class="black--text">Total neto : {{totalVendido+TotalFinalImpuesto}}</span></div>        
               </v-row>              
-              <v-row>  
+                
+            </v-container>                
+        </div>
+        <div v-if="muestra==1" style="margin-top:10px; margin-left:40px; margin-right:7%" class="container-fluid">
+          <v-row>  
               <!--tabla con todos los articulos-->            
                 <v-col>
                   <v-data-table class="ancho-tabla elevation-15"  :headers="mostradorArticulosTitle" :items="mostradorArticulos" :search="search" >
                     <template v-slot:top>
                       <v-toolbar flat >
+                        <v-toolbar-title>Todos</v-toolbar-title>
                         <v-spacer></v-spacer>
                         <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
                         <v-divider  class="mx-4"   inset  vertical ></v-divider>
@@ -79,6 +93,7 @@
                   <v-data-table class="ancho-tabla elevation-15" :headers="facturaArticulosTitle" :items="facturaArticulos"   >
                     <template v-slot:top>
                       <v-toolbar flat >
+                        <v-toolbar-title>Vendidos</v-toolbar-title>
                         <v-spacer></v-spacer>
                         <v-text-field  v-model="search"  append-icon="mdi-magnify" label="Buscar" single-line  hide-details ></v-text-field>
                         <v-divider  class="mx-4"   inset  vertical ></v-divider>
@@ -98,8 +113,7 @@
                     </template>
                   </v-data-table> 
                 </v-col>  
-              </v-row>  
-            </v-container>                
+              </v-row>
         </div>
       </template>
       <template>
@@ -220,11 +234,11 @@ import 'jspdf-autotable'
       mostradorArticulos:[{_id:'',codigo:'',nombre:'',precio:0,cantidad:0}],
 
       facturaArticulosTitle:[
-        {text:'Nombre',value:'nombre',class:'teal accent-4 white--text',sortable: false},
-        {text:'Cantidad',value:'cantidad',class:'teal accent-4 white--text',sortable: false},
-        {text:'Precio',value:'precio',class:'teal accent-4 white--text',sortable: false},
-        {text:'Sub total',value:'subtotal',class:'teal accent-4 white--text',sortable: false},
-        {text:'Eliminar',value:'actions',class:'teal accent-4 white--text',sortable: false}
+        {text:'Nombre',value:'nombre',class:'black accent-4 white--text',sortable: false},
+        {text:'Cantidad',value:'cantidad',class:'black accent-4 white--text',sortable: false},
+        {text:'Precio',value:'precio',class:'black accent-4 white--text',sortable: false},
+        {text:'Sub total',value:'subtotal',class:'black accent-4 white--text',sortable: false},
+        {text:'Eliminar',value:'actions',class:'black accent-4 white--text',sortable: false}
       ],
       facturaArticulos:[  ],
       editedIndex: -1,
@@ -662,7 +676,8 @@ import 'jspdf-autotable'
       TotalFinalImpuesto(){
         if(!this.editedItem.impuesto)return 0
         var totalImpues =this.totalVendido*this.editedItem.impuesto/100 
-        return totalImpues.toFixed(2)
+        var mandar = parseFloat(totalImpues.toFixed(2))
+        return mandar
       },
     }
   }

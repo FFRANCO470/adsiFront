@@ -9,14 +9,17 @@
               <v-toolbar-title>Categorias</v-toolbar-title>
               <!--barra para buscar-->
               <v-spacer></v-spacer>
-              <v-text-field v-model="search" append-icon="mdi-magnify" label="Buscar" single-line hide-details  ></v-text-field>
+              <v-text-field v-model="search" append-icon="mdi-magnify" label="Buscar por nombre o descripción" single-line hide-details  ></v-text-field>
               <v-divider class="mx-4"   inset vertical></v-divider>
               <!--Botones descargar agregar-->
               <v-spacer></v-spacer>
               <v-dialog v-model="dialog"  max-width="500px"  >
                 <template v-slot:activator="{ on, attrs }">
-                  <v-btn  depressed dark class="mb-2" v-bind="attrs"  v-on="on" >   Añadir  </v-btn>
-                  <v-icon  medium class="mr-4"   @click="crearPDF()" >mdi-download</v-icon>
+                  <v-btn  depressed dark class="mb-2" v-bind="attrs"  @click="nuevo" >   Añadir  </v-btn>
+                  <v-btn  depressed dark class="mb-2" style="margin-right:10px" v-bind="attrs"   @click="crearPDF()" >   
+                    Descargar PDF <v-icon  medium class="mr-4" >mdi-download </v-icon> 
+                  </v-btn>
+                  
                 </template>
                 <!--Formuario para almacenar o editar-->
                 <v-card >
@@ -32,6 +35,18 @@
               </v-dialog>
             </v-toolbar>
           </template>
+          
+
+          <!--estado-->
+          <template v-slot:[`item.estado`]="{ item }">
+            <div v-if="item.estado">
+              <span class="black--text">Activo</span>
+            </div>
+            <div v-else>
+              <span class="red--text">Inactivo</span>
+            </div>
+          </template>
+
           <!--editar activar desactibar-->
           <template v-slot:[`item.actions`]="{ item }">
             <v-icon   small  class="mr-2" @click="editar(item)" >mdi-pencil</v-icon>
@@ -68,8 +83,9 @@ import Swal from 'sweetalert2'
         value => (value && value.length <= 255) || 'Max 255 caracteres'
       ],
       columnas: [
-        { text: 'Nombre', value: 'nombre'  , class:'teal accent-4 white--text',width:'30%'},
+        { text: 'Nombre', value: 'nombre'  , class:'teal accent-4 white--text'},
         { text: 'Descripcion', value: 'descripcion', class:'teal accent-4 white--text' },
+        { text: 'Estado', value: 'estado', class:'teal accent-4 white--text' },
         { text: 'Actions', value: 'actions' , class:'teal accent-4 white--text',width:'10%',sortable: false }
       ],
       categorias: [{estado:'', nombre:'', descripcion:''}],//columnas de tablas
@@ -89,7 +105,7 @@ import Swal from 'sweetalert2'
           title: tata,
           showConfirmButton: false,
           //5000 son 5 seg
-          timer: 2000})
+          timer: 3000})
       },
       //Traer todas las categorias
       obtenerCategorias(){
@@ -119,6 +135,11 @@ import Swal from 'sweetalert2'
         this.editedItem.nombre=''
         this.editedItem.descripcion=''
       },
+      nuevo(){
+        this.reset()
+        this.dialog=true;
+        this.bd=0;
+      },
       //para editar la categoria
       editar(item){
         console.log(item);
@@ -134,48 +155,65 @@ import Swal from 'sweetalert2'
           console.log('estoy guardando'+this.bd+'almacenar');
           let header = {headers:{"token" : this.$store.state.token}};
           const me = this;
-          axios.post('categoria',{ nombre:this.editedItem.nombre,descripcion:this.editedItem.descripcion},header)
-            .then((response)=>{
-              console.log(response);
-              me.obtenerCategorias(),
-              me.reset();
-              this.dialog=false;
-            })
-            .catch((error)=>{
-              console.log(error.response);
-              //this.mensajeError=true 
-              if(!error.response.data.msg){
+          if(this.editedItem.nombre.trim()=='' || this.editedItem.descripcion.trim()=='' ){
+            this.msgError = 'Nombre y descripcion obligatorios'
+            this.msjcompra(this.msgError);
+          }else if(this.editedItem.nombre.length>50 || this.editedItem.descripcion.length>255){
+            this.msgError = 'Nombre y descripcion han superado el limite max de caracteres'
+            this.msjcompra(this.msgError);
+          }else{
+            axios.post('categoria',{ nombre:this.editedItem.nombre,descripcion:this.editedItem.descripcion},header)
+              .then((response)=>{
+                console.log(response);
+                me.obtenerCategorias(),
+                me.reset();
+                this.dialog=false;
+              })
+              .catch((error)=>{
                 console.log(error.response);
-                this.msgError = error.response.data.errors[0].msg
-                this.msjcompra(this.msgError);
-              }else{
-                this.msgError = error.response.data.msg
-                console.log(error.response.data.msg);
-                this.msjcompra(this.msgError);
-              }
-            })
+                //this.mensajeError=true 
+                if(!error.response.data.msg){
+                  console.log(error.response);
+                  this.msgError = error.response.data.errors[0].msg
+                  this.msjcompra(this.msgError);
+                }else{
+                  this.msgError = error.response.data.msg
+                  console.log(error.response.data.msg);
+                  this.msjcompra(this.msgError);
+                }
+              })
+          }
+          
         }else{
           console.log('estoy enviando'+this.bd+'editar');
           let header = {headers:{"token" : this.$store.state.token}};
           const me = this;
-          axios.put(`categoria/${this.id}`,{ nombre:this.editedItem.nombre, descripcion:this.editedItem.descripcion }, header )
-            .then((response)=>{
-              console.log(response);
-              me.obtenerCategorias(),
-              this.dialog=false;
-            })
-            .catch((error)=>{
-              console.log(error.response);
-              if(!error.response.data.msg){
+          if(this.editedItem.nombre.trim()=='' || this.editedItem.descripcion.trim()=='' ){
+            this.msgError = 'Nombre y descripcion obligatorios'
+            this.msjcompra(this.msgError);
+          }else if(this.editedItem.nombre.length>50 || this.editedItem.descripcion.length>255){
+            this.msgError = 'Nombre y descripcion han superado el limite max de caracteres'
+            this.msjcompra(this.msgError);
+          }else{
+            axios.put(`categoria/${this.id}`,{ nombre:this.editedItem.nombre, descripcion:this.editedItem.descripcion }, header )
+              .then((response)=>{
+                console.log(response);
+                me.obtenerCategorias(),
+                this.dialog=false;
+              })
+              .catch((error)=>{
                 console.log(error.response);
-                this.msgError = error.response.data.errors[0].msg
-                this.msjcompra(this.msgError);
-              }else{
-                this.msgError = error.response.data.msg
-                console.log(error.response.data.msg);
-                this.msjcompra(this.msgError);
-              }  
-            })
+                if(!error.response.data.msg){
+                  console.log(error.response);
+                  this.msgError = error.response.data.errors[0].msg
+                  this.msjcompra(this.msgError);
+                }else{
+                  this.msgError = error.response.data.msg 
+                  console.log(error.response.data.msg);
+                  this.msjcompra(this.msgError);
+                }  
+              })
+          }
         }
       },//guardar
       //activar o desactivar

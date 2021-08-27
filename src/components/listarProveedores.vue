@@ -8,14 +8,20 @@
             <v-toolbar flat  >
               <v-toolbar-title>Proveedores</v-toolbar-title>
               <!--buscar-->
-              <v-spacer></v-spacer>
-              <v-text-field   v-model="search"  append-icon="mdi-magnify"  label="Buscar"  single-line hide-details></v-text-field>
-              <v-divider  class="mx-4" inset  vertical ></v-divider>
+              <v-text-field   v-model="search"   
+                              append-icon="mdi-magnify" 
+                              style="margin-left:50px;width:40%" 
+                              label="Buscar por nombre, tipo documento, num. documento, direccion, telefono, email"
+                              single-line hide-details>
+              </v-text-field>
+              <v-divider  class="mx-150" inset  vertical ></v-divider>
               <v-spacer></v-spacer>
               <v-dialog v-model="dialog" max-width="500px"  >
                 <template v-slot:activator="{ on, attrs }">
-                  <v-btn  depressed dark  class="mb-2"  v-bind="attrs"  v-on="on"  >  Añadir </v-btn>
-                  <v-icon  medium  class="mr-4"  @click="crearPDF()" >  mdi-download </v-icon>
+                  <v-btn  depressed dark  class="mb-2"  v-bind="attrs"  @click="nuevo()"  >  Añadir </v-btn>
+                  <v-btn  depressed dark class="mb-2" style="margin-right:10px" v-bind="attrs"   @click="crearPDF()" >   
+                    Descargar PDF <v-icon  medium class="mr-4" >mdi-download </v-icon> 
+                  </v-btn>
                 </template>
                 <!--formulario-->
                 <v-card >
@@ -36,6 +42,15 @@
                 </v-card>
               </v-dialog>
             </v-toolbar>
+          </template>
+          <!--estado-->
+          <template v-slot:[`item.estado`]="{ item }">
+            <div v-if="item.estado">
+              <span class="black--text">Activo</span>
+            </div>
+            <div v-else>
+              <span class="red--text">Inactivo</span>
+            </div>
           </template>
           <!--editar activar desactivar-->
           <template v-slot:[`item.actions`]="{ item }">
@@ -85,6 +100,7 @@ import Swal from 'sweetalert2'
         { text: 'Dirección', value: 'direccion' , class:'teal accent-4 white--text'},
         { text: 'Telefono', value: 'telefono', class:'teal accent-4 white--text',width:'10%' ,sortable: false },
         { text: 'Email', value: 'email', class:'teal accent-4 white--text' },
+        { text: 'Estado', value: 'estado', class:'teal accent-4 white--text' },
         { text: 'Actions', value: 'actions' , class:'teal accent-4 white--text',width:'10%',sortable: false }
       ],
       personas: [
@@ -110,7 +126,7 @@ import Swal from 'sweetalert2'
           title: tata,
           showConfirmButton: false,
           //5000 son 5 seg
-          timer: 2000})
+          timer: 3000})
       },
       //traer proveedores
       obtenerPersonas(){
@@ -131,6 +147,11 @@ import Swal from 'sweetalert2'
             }
           })
       },//obtenerPersonas
+      nuevo(){
+        this.reset();
+        this.dialog=true;
+        this.bd=0;
+      },
       //limpiar formulario
       reset(){
         this.editedItem.nombre=''
@@ -161,68 +182,81 @@ import Swal from 'sweetalert2'
           console.log('estoy guardando'+this.bd+'ALMACENAR');
           let header = {headers:{"token" : this.$store.state.token}};
           const me = this;
-          axios.post('persona',{
-            nombre:this.editedItem.nombre,
-            tipoPersona:'proveedor',
-            tipoDocumento:this.editedItem.tipoDocumento,
-            numDocumento:this.editedItem.numDocumento,
-            direccion:this.editedItem.direccion,
-            telefono:this.editedItem.telefono,
-            email:this.editedItem.email,
-            },
-            header
-            )
-            .then((response)=>{
-              console.log(response);
-              me.obtenerPersonas(),
-              this.dialog=false
-            })
-            .catch((error)=>{
-              console.log(error.response);
-              if(!error.response.data.msg){
+          if(this.editedItem.nombre.trim()==='' || this.editedItem.email.trim()===''){
+            this.msjcompra("Nombre y Email obligatorios");
+          }else if(this.editedItem.nombre.length>50 || this.editedItem.email.length>50){
+            this.msjcompra("Nombre y Email max 50 caracteres");
+          }else{
+            axios.post('persona',{
+              nombre:this.editedItem.nombre,
+              tipoPersona:'proveedor',
+              tipoDocumento:this.editedItem.tipoDocumento,
+              numDocumento:this.editedItem.numDocumento,
+              direccion:this.editedItem.direccion,
+              telefono:this.editedItem.telefono,
+              email:this.editedItem.email,
+              },
+              header
+              )
+              .then((response)=>{
+                console.log(response);
+                me.obtenerPersonas(),
+                this.dialog=false
+              })
+              .catch((error)=>{
                 console.log(error.response);
-                this.msgError = error.response.data.errors[0].msg;
-                this.msjcompra(this.msgError);
-              }else{
-                this.msgError = error.response.data.msg;
-                console.log(error.response.data.msg);
-                this.msgError =error.response.data.msg;
-                this.msjcompra(this.msgError);
-              }
-            })
+                if(!error.response.data.msg){
+                  console.log(error.response);
+                  this.msgError = error.response.data.errors[0].msg;
+                  this.msjcompra(this.msgError);
+                }else{
+                  this.msgError = error.response.data.msg;
+                  console.log(error.response.data.msg);
+                  this.msgError =error.response.data.msg;
+                  this.msjcompra(this.msgError);
+                }
+              })
+          }
+          
         }else{
           console.log('estoy enviando'+this.bd+'EDITAR');
           let header = {headers:{"token" : this.$store.state.token}};
           const me = this;
-          axios.put(`persona/${this.id}`,{
-            nombre:this.editedItem.nombre,
-            tipoPersona:'proveedor',
-            tipoDocumento:this.editedItem.tipoDocumento,
-            numDocumento:this.editedItem.numDocumento,
-            direccion:this.editedItem.direccion,
-            telefono:this.editedItem.telefono,
-            email:this.editedItem.email,
-            },
-            header
-            )
-            .then((response)=>{
-              console.log(response);
-              me.obtenerPersonas(),
-              this.dialog=false
-            })
-            .catch((error)=>{
-              console.log(error.response);
-              if(!error.response.data.msg){
+          if(this.editedItem.nombre.trim()==='' || this.editedItem.email.trim()===''){
+            this.msjcompra("Nombre y Email obligatorios");
+          }else if(this.editedItem.nombre.length>50 || this.editedItem.email.length>50){
+            this.msjcompra("Nombre y Email max 50 caracteres");
+          }else{
+            axios.put(`persona/${this.id}`,{
+              nombre:this.editedItem.nombre,
+              tipoPersona:'proveedor',
+              tipoDocumento:this.editedItem.tipoDocumento,
+              numDocumento:this.editedItem.numDocumento,
+              direccion:this.editedItem.direccion,
+              telefono:this.editedItem.telefono,
+              email:this.editedItem.email,
+              },
+              header
+              )
+              .then((response)=>{
+                console.log(response);
+                me.obtenerPersonas(),
+                this.dialog=false
+              })
+              .catch((error)=>{
                 console.log(error.response);
-                this.msgError = error.response.data.errors[0].msg;
-                this.msjcompra(this.msgError);
-              }else{
-                this.msgError = error.response.data.msg;
-                console.log(error.response.data.msg);
-                this.msgError =error.response.data.msg;
-                this.msjcompra(this.msgError);
-              }
-            })
+                if(!error.response.data.msg){
+                  console.log(error.response);
+                  this.msgError = error.response.data.errors[0].msg;
+                  this.msjcompra(this.msgError);
+                }else{
+                  this.msgError = error.response.data.msg;
+                  console.log(error.response.data.msg);
+                  this.msgError =error.response.data.msg;
+                  this.msjcompra(this.msgError);
+                }
+              })
+          }
         }
       },//guardar
       activarDesactivarItem (accion , item) {
