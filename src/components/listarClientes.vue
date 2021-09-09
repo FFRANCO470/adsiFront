@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-container fluid>
-      <template>
+      <template v-if="cambioPagina == 1">
         <v-data-table  class="ancho-tabla elevation-15 " :headers="columnas" :items="personas" :search="search">
           <template v-slot:top>
             <!--parte arriba tabla-->
@@ -55,6 +55,7 @@
           </template>
           <!--activar desactivar editar-->
           <template v-slot:[`item.actions`]="{ item }">
+            <v-icon  small  class="mr-2" @click="cambioPage(2,item)" >mdi-clipboard-outline </v-icon>
             <v-icon  small  class="mr-2"  @click="editar(item)" >  mdi-pencil</v-icon>
             <template v-if="item.estado">
               <v-icon  small class="mr-2" @click="activarDesactivarItem(2,item)" > mdi-check</v-icon>
@@ -64,6 +65,32 @@
             </template>
           </template>
         </v-data-table>
+      </template>
+
+      <template v-if="cambioPagina == 2">
+        <v-row>
+          <v-col>
+            <v-btn   @click="cambioPage(0,false)"  color="red" dark class="mb-2"> Volver</v-btn>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col>
+                <v-card style="margin-top:60px; margin-left:20%;width:500px; height:500px">
+                    <img :src="this.foto" style="margin-left:10px; margin-top:10px" alt="" contain  height="90%" width="90%">
+                    <!--<img src="https://res.cloudinary.com/dkjh0sfey/image/upload/v1629910698/dl7o1gkq7kx9kytzlml1.jpg" style="margin-left:10px; margin-top:10px" alt="" contain  height="90%" width="90%">-->
+
+                </v-card>
+                
+            </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <input  type="file" @change="onFileSelect" accept="image/png, image/jpeg" class="form-control col-sm-6 llenarTextoa">
+            <v-btn class="botones" style="margin-top:10px; "  icon color="#72128E" @click="actualizarFoto()"><v-icon>mdi-reload</v-icon>  </v-btn>
+          </v-col>
+        </v-row>
+         
       </template>
     </v-container>
   </v-app>
@@ -77,6 +104,10 @@ import 'jspdf-autotable'
 import Swal from 'sweetalert2'
   export default {
     data: () => ({
+      cambioPagina:1,
+      foto:null,
+      selectedFile:null,
+
       drawer:false,
       search: '',
       valid: false,
@@ -118,6 +149,7 @@ import Swal from 'sweetalert2'
     created(){
       this.obtenerPersonas();
     },
+    
     methods: {
       //msg alerta
       msjcompra:function(tata){
@@ -128,6 +160,61 @@ import Swal from 'sweetalert2'
           showConfirmButton: false,
           timer: 3000})
       },
+
+      cambioPage(num,item){
+        console.log(item);
+        if(num == 2){
+          this.cambioPagina=2
+          this.traerFoto(item._id)
+        }else{
+          this.cambioPagina=1
+        }
+      },
+
+      traerFoto(id){
+        console.log(id);
+        let header = {headers:{"token" : this.$store.state.token}};
+        axios.get(`persona/uploadCloud/${id}`,header)
+          .then(response =>{
+            console.log(response.data);
+            this.foto = response.data.url
+            console.log(this.foto);
+          })
+          .catch((error) =>{
+            console.log(error.response);
+            if(!error.response.data.msg){
+              this.msgError = error.response.data.errors[0].msg;
+              this.msjcompra(this.msgError);
+            }else{
+              this.msgError =error.response.data.msg;
+              this.msjcompra(this.msgError);
+            }
+          })
+      },
+
+      onFileSelect(event){
+        console.log(event);
+        this.selectedFile = event.target.files[0]
+      },//onFileSelect
+
+      actualizarFoto(){
+        this.msjcompra('trabajando en ello');
+        // const fd = new FormData();
+        //fd.append('image',this.selectedFile, this.selectedFile.name)
+        //axios.post('https://www.youtube.com/watch?v=GXe_JpBQLTQ',fd)
+        //https://www.youtube.com/watch?v=J2Wp4_XRsWc
+          //.then(res=>{
+            //console.log('proceso subir' + Math.round(uploadEvent.loaded / uploadEvent.total * 100) + ' %');
+          //})
+
+      },
+
+
+
+
+
+
+
       //traerse los clientes
       obtenerPersonas(){
         let header = {headers:{"token" : this.$store.state.token}};
