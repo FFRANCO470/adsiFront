@@ -86,17 +86,15 @@
         </v-row>
         <v-row>
           <v-col>
-          <!-- (enctype) decirle al formulario que en el hay un arcivo especial (foto) -->
+          <!-- (enctype) decirle al formulario que en el hay un arcivo especial (foto) y debe divirlo para enviar-->
             <form enctype="multipart/form-data"> 
+             <!--change que cuando cambia el estado del imput (vacio-lleno) haga algo-->
               <input  type="file"    @change="onFileSelect"  class="form-control col-sm-6 llenarTextoa">
+              <!--boton para subir la foto a la nube (cloudinary)-->
               <v-btn class="botones" style="margin-top:10px; "  icon color="#72128E" @click="actualizarFoto()">
                 <v-icon>mdi-reload</v-icon>  
               </v-btn>
-
             </form>
-
-           
-            
           </v-col>
         </v-row>
          
@@ -115,10 +113,9 @@ import Swal from 'sweetalert2'
     
     data: () => ({
       cambioPagina:1,
-      foto:null,//un objeto donde esta el cuerpo del archivo
-      selectedFile:null,
-      idPersona:'',
-
+      foto:null,//url para mostrar la imganen
+      selectedFile:null,//un objeto donde esta el cuerpo del archivo
+      idPersona:'',//id de la persona a la cual le va a agregar la foto
 
       drawer:false,
       search: '',
