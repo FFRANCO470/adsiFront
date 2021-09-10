@@ -86,8 +86,17 @@
         </v-row>
         <v-row>
           <v-col>
-            <input  type="file" @change="onFileSelect" accept="image/png, image/jpeg" class="form-control col-sm-6 llenarTextoa">
-            <v-btn class="botones" style="margin-top:10px; "  icon color="#72128E" @click="actualizarFoto()"><v-icon>mdi-reload</v-icon>  </v-btn>
+          <!-- (enctype) decirle al formulario que en el hay un arcivo especial (foto) -->
+            <form enctype="multipart/form-data"> 
+              <input  type="file"    @change="onFileSelect"  class="form-control col-sm-6 llenarTextoa">
+              <v-btn class="botones" style="margin-top:10px; "  icon color="#72128E" @click="actualizarFoto()">
+                <v-icon>mdi-reload</v-icon>  
+              </v-btn>
+
+            </form>
+
+           
+            
           </v-col>
         </v-row>
          
@@ -103,10 +112,13 @@ import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import Swal from 'sweetalert2'
   export default {
+    
     data: () => ({
       cambioPagina:1,
-      foto:null,
+      foto:null,//un objeto donde esta el cuerpo del archivo
       selectedFile:null,
+      idPersona:'',
+
 
       drawer:false,
       search: '',
@@ -172,13 +184,19 @@ import Swal from 'sweetalert2'
       },
 
       traerFoto(id){
+        this.idPersona = id
         console.log(id);
         let header = {headers:{"token" : this.$store.state.token}};
         axios.get(`persona/uploadCloud/${id}`,header)
           .then(response =>{
             console.log(response.data);
-            this.foto = response.data.url
-            console.log(this.foto);
+            if(response.data.url){
+              this.foto = response.data.url
+              console.log(this.foto);
+            }else{
+              this.foto = ''
+            }
+            
           })
           .catch((error) =>{
             console.log(error.response);
@@ -195,18 +213,31 @@ import Swal from 'sweetalert2'
       onFileSelect(event){
         console.log(event);
         this.selectedFile = event.target.files[0]
+        console.log(this.selectedFile);
       },//onFileSelect
 
-      actualizarFoto(){
-        this.msjcompra('trabajando en ello');
-        // const fd = new FormData();
-        //fd.append('image',this.selectedFile, this.selectedFile.name)
-        //axios.post('https://www.youtube.com/watch?v=GXe_JpBQLTQ',fd)
-        //https://www.youtube.com/watch?v=J2Wp4_XRsWc
-          //.then(res=>{
-            //console.log('proceso subir' + Math.round(uploadEvent.loaded / uploadEvent.total * 100) + ' %');
-          //})
-
+      async actualizarFoto(){
+        const formData = new FormData();//objeto de datos de formulario
+        formData.append('archivo',this.selectedFile)//el objeto tiene varios atributos el nombre         
+          let header = {headers:{"token" : this.$store.state.token}};
+          await axios.post(`persona/uploadCloud/${this.idPersona}`,formData,header)
+            .then((response)=>{
+              console.log(response);
+              this.traerFoto(this.idPersona)
+            })
+            .catch((error)=>{
+              console.log(error.response);
+              if(!error.response.data.msg){
+                console.log(error.response);
+                this.msgError = error.response.data.errors[0].msg;
+                this.msjcompra(this.msgError);
+              }else{
+                this.msgError = error.response.data.msg;
+                console.log(error.response.data.msg);
+                this.msgError =error.response.data.msg;
+                this.msjcompra(this.msgError);
+              }
+            })
       },
 
 
