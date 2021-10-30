@@ -211,6 +211,8 @@ import Swal from 'sweetalert2'
         console.log(event);
         this.selectedFile = event.target.files[0]
         console.log(this.selectedFile);
+        console.log('ruta compeltra');
+        console.log(event.target.files[0].FullPath);
       },//onFileSelect
 
       async actualizarFoto(){
